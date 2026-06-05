@@ -1,0 +1,166 @@
+{
+	"info": {
+		"name": "Ditio Core Integration",
+		"description": "Examples for the Ditio Core API: send data in (projects, work orders, machines, users/employees, certificates, documents) and read data out via the data-extraction API.\n\nSetup:\n1. Fill in clientId, clientSecret, companyId on the collection Variables tab (or import a Production/Test environment).\n2. Run 'Auth > Get integration token' (and 'Get reporting token' for the Data extraction folder).\n3. Use the lookup requests to fill projectId/taskId/etc.\n\nPrefer PATCH over PUT: PUT replaces the whole object and wipes omitted fields.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{accessToken}}", "type": "string" } ] },
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Get integration token (ditioapiv3)",
+					"event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [
+						"var j = pm.response.json();",
+						"if (j.access_token) { pm.collectionVariables.set('accessToken', j.access_token); }"
+					] } } ],
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "POST",
+						"header": [ { "key": "Content-Type", "value": "application/x-www-form-urlencoded" } ],
+						"body": { "mode": "urlencoded", "urlencoded": [
+							{ "key": "grant_type", "value": "client_credentials" },
+							{ "key": "client_id", "value": "{{clientId}}" },
+							{ "key": "client_secret", "value": "{{clientSecret}}" },
+							{ "key": "scope", "value": "{{scope}}" }
+						] },
+						"url": { "raw": "{{identityUrl}}/connect/token", "host": ["{{identityUrl}}"], "path": ["connect","token"] }
+					}
+				},
+				{
+					"name": "Get reporting token (reportingapiv1)",
+					"event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [
+						"var j = pm.response.json();",
+						"if (j.access_token) { pm.collectionVariables.set('reportingToken', j.access_token); }"
+					] } } ],
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "POST",
+						"header": [ { "key": "Content-Type", "value": "application/x-www-form-urlencoded" } ],
+						"body": { "mode": "urlencoded", "urlencoded": [
+							{ "key": "grant_type", "value": "client_credentials" },
+							{ "key": "client_id", "value": "{{clientId}}" },
+							{ "key": "client_secret", "value": "{{clientSecret}}" },
+							{ "key": "scope", "value": "{{reportingScope}}" }
+						] },
+						"url": { "raw": "{{identityUrl}}/connect/token", "host": ["{{identityUrl}}"], "path": ["connect","token"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "Projects",
+			"item": [
+				{ "name": "Create project", "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [ "var j = pm.response.json(); if (j && j.id) pm.collectionVariables.set('projectId', j.id);" ] } } ],
+					"request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ],
+						"body": { "mode": "raw", "raw": "{\n  \"companyId\": \"{{companyId}}\",\n  \"projectNumber\": \"P-1001\",\n  \"name\": \"My project\",\n  \"active\": true\n}" },
+						"url": { "raw": "{{baseUrl}}/api/v4/integration/projects", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","projects"] } } },
+				{ "name": "List projects", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v4/integration/projects", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","projects"] } } },
+				{ "name": "Get project by number", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v4/integration/projects/by-project-number/{{projectNumber}}", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","projects","by-project-number","{{projectNumber}}"] } } },
+				{ "name": "Patch project (partial)", "request": { "method": "PATCH", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Renamed project\"\n}" }, "url": { "raw": "{{baseUrl}}/api/v4/integration/projects/{{projectId}}", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","projects","{{projectId}}"] } } },
+				{ "name": "Delete project", "request": { "method": "DELETE", "header": [], "url": { "raw": "{{baseUrl}}/api/v4/integration/projects/{{projectId}}", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","projects","{{projectId}}"] } } }
+			]
+		},
+		{
+			"name": "Work orders (tasks)",
+			"item": [
+				{ "name": "Create work order", "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [ "var j = pm.response.json(); if (j && j.id) pm.collectionVariables.set('taskId', j.id);" ] } } ],
+					"request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ],
+						"body": { "mode": "raw", "raw": "{\n  \"companyId\": \"{{companyId}}\",\n  \"projectId\": \"{{projectId}}\",\n  \"externalId\": \"WO-100\",\n  \"name\": \"Foundation work\",\n  \"active\": true\n}" },
+						"url": { "raw": "{{baseUrl}}/api/v4/integration/tasks", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","tasks"] } } },
+				{ "name": "List work orders in project", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v4/integration/tasks/project/{{projectId}}", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","tasks","project","{{projectId}}"] } } },
+				{ "name": "Patch work order (partial)", "request": { "method": "PATCH", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Foundation (phase 2)\"\n}" }, "url": { "raw": "{{baseUrl}}/api/v4/integration/tasks/{{taskId}}", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","tasks","{{taskId}}"] } } }
+			]
+		},
+		{
+			"name": "Documents",
+			"item": [
+				{ "name": "Upload to project", "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [ "var j = pm.response.json(); if (j && j.files && j.files[0] && j.files[0].fileReference) pm.collectionVariables.set('fileReferenceId', j.files[0].fileReference.id);" ] } } ],
+					"request": { "method": "POST", "header": [], "body": { "mode": "formdata", "formdata": [ { "key": "file", "type": "file", "src": [] } ] }, "url": { "raw": "{{baseUrl}}/api/v4/integration/projects/{{projectId}}/files?replaceExistingFilesWithSameName=true", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","projects","{{projectId}}","files"], "query": [ { "key": "replaceExistingFilesWithSameName", "value": "true" } ] } } },
+				{ "name": "List project documents", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v4/integration/projects/{{projectId}}/files", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","projects","{{projectId}}","files"] } } },
+				{ "name": "Delete project document", "request": { "method": "DELETE", "header": [], "url": { "raw": "{{baseUrl}}/api/v4/integration/projects/{{projectId}}/files/{{fileReferenceId}}", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","projects","{{projectId}}","files","{{fileReferenceId}}"] } } }
+			]
+		},
+		{
+			"name": "Machines",
+			"item": [
+				{ "name": "Create machine", "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [ "var j = pm.response.json(); if (j && j.id) pm.collectionVariables.set('machineId', j.id);" ] } } ],
+					"request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n  \"companyId\": \"{{companyId}}\",\n  \"machineNumber\": \"M-001\",\n  \"name\": \"Volvo EC220E\",\n  \"typeId\": \"beltemaskin\",\n  \"active\": true\n}" }, "url": { "raw": "{{baseUrl}}/api/v4/integration/machines", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","machines"] } } },
+				{ "name": "Get machine by number", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v4/integration/machines/by-machine-number/M-001", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","machines","by-machine-number","M-001"] } } },
+				{ "name": "Patch machine (partial)", "request": { "method": "PATCH", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n  \"hourMeter\": 3500\n}" }, "url": { "raw": "{{baseUrl}}/api/v4/integration/machines/{{machineId}}", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","machines","{{machineId}}"] } } },
+				{ "name": "Patch machine ESG", "request": { "method": "PATCH", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n  \"fuelConsumptionRate\": 12.5,\n  \"fuelConsumptionUnit\": 0,\n  \"fuelType\": 1\n}" }, "url": { "raw": "{{baseUrl}}/api/v4/integration/machines/{{machineId}}/esg", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","machines","{{machineId}}","esg"] } } }
+			]
+		},
+		{
+			"name": "Reference data",
+			"item": [
+				{ "name": "Machine types", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/MachineType", "host": ["{{baseUrl}}"], "path": ["api","MachineType"] } } },
+				{ "name": "Alert (notification) types", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/ProjNotificationTypeSetup", "host": ["{{baseUrl}}"], "path": ["api","ProjNotificationTypeSetup"] } } }
+			]
+		},
+		{
+			"name": "Users (v4)",
+			"item": [
+				{ "name": "Create user", "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n  \"companyId\": \"{{companyId}}\",\n  \"employeeNumber\": \"1042\",\n  \"firstName\": \"Ola\",\n  \"lastName\": \"Nordmann\",\n  \"mobileWork\": \"+4798765432\",\n  \"birthDate\": \"1990-05-15\",\n  \"employmentStartDate\": \"2025-03-01\"\n}" }, "url": { "raw": "{{baseUrl}}/api/v4/integration/users", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","users"] } } },
+				{ "name": "Get user by employee number", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v4/integration/users/by-employee-number/1042", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","users","by-employee-number","1042"] } } },
+				{ "name": "Patch user (partial)", "request": { "method": "PATCH", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n  \"workTitle\": \"Project Manager\"\n}" }, "url": { "raw": "{{baseUrl}}/api/v4/integration/users/{{companyProfileId}}", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","users","{{companyProfileId}}"] } } }
+			]
+		},
+		{
+			"name": "Employees (v5)",
+			"item": [
+				{ "name": "Create employee", "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n  \"employeeNumber\": \"1042\",\n  \"firstName\": \"Ola\",\n  \"lastName\": \"Nordmann\",\n  \"phone\": \"+4798765432\",\n  \"birthDate\": \"1990-05-15\",\n  \"employment\": { \"startDate\": \"2025-03-01\", \"payroll\": 1 }\n}" }, "url": { "raw": "{{baseUrl}}/api/v5/integration/employees", "host": ["{{baseUrl}}"], "path": ["api","v5","integration","employees"] } } },
+				{ "name": "Get employee", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v5/integration/employees/1042?include=tags,employment-history", "host": ["{{baseUrl}}"], "path": ["api","v5","integration","employees","1042"], "query": [ { "key": "include", "value": "tags,employment-history" } ] } } },
+				{ "name": "Patch employee (partial)", "request": { "method": "PATCH", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n  \"workTitle\": \"Project Manager\",\n  \"email\": null\n}" }, "url": { "raw": "{{baseUrl}}/api/v5/integration/employees/1042", "host": ["{{baseUrl}}"], "path": ["api","v5","integration","employees","1042"] } } },
+				{ "name": "End employment", "request": { "method": "PATCH", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n  \"endDate\": \"2025-06-30\"\n}" }, "url": { "raw": "{{baseUrl}}/api/v5/integration/employees/1042/end-employment", "host": ["{{baseUrl}}"], "path": ["api","v5","integration","employees","1042","end-employment"] } } }
+			]
+		},
+		{
+			"name": "Certificates",
+			"item": [
+				{ "name": "Create/update certificates", "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "[\n  {\n    \"employeeNumber\": \"1042\",\n    \"certificateType\": \"Byggekort\",\n    \"certificateNumber\": \"BK-2025-12345\",\n    \"issuedDateTime\": \"2025-01-15T00:00:00Z\",\n    \"validUntilDateTime\": \"2027-01-15T00:00:00Z\"\n  }\n]" }, "url": { "raw": "{{baseUrl}}/api/v4/integration/certificates", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","certificates"] } } }
+			]
+		},
+		{
+			"name": "Payroll export",
+			"item": [
+				{ "name": "Payroll export (JSON)", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/payroll-export/?fromWorkDate=2025-01-01&toWorkDate=2025-01-31&dataFilter=0", "host": ["{{baseUrl}}"], "path": ["api","payroll-export",""], "query": [ { "key": "fromWorkDate", "value": "2025-01-01" }, { "key": "toWorkDate", "value": "2025-01-31" }, { "key": "dataFilter", "value": "0" } ] } } }
+			]
+		},
+		{
+			"name": "Data extraction (out of Ditio)",
+			"description": "Reporting API. Run 'Auth > Get reporting token' first — these use the reportingToken and reportingUrl.",
+			"item": [
+				{ "name": "Projects", "request": { "auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{reportingToken}}", "type": "string" } ] }, "method": "GET", "header": [], "url": { "raw": "{{reportingUrl}}/v1/project", "host": ["{{reportingUrl}}"], "path": ["v1","project"] } } },
+				{ "name": "Work orders (WBS)", "request": { "auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{reportingToken}}", "type": "string" } ] }, "method": "GET", "header": [], "url": { "raw": "{{reportingUrl}}/v1/project/work-breakdown-structure", "host": ["{{reportingUrl}}"], "path": ["v1","project","work-breakdown-structure"] } } },
+				{ "name": "Users", "request": { "auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{reportingToken}}", "type": "string" } ] }, "method": "GET", "header": [], "url": { "raw": "{{reportingUrl}}/v1/user", "host": ["{{reportingUrl}}"], "path": ["v1","user"] } } },
+				{ "name": "Resources (machines)", "request": { "auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{reportingToken}}", "type": "string" } ] }, "method": "GET", "header": [], "url": { "raw": "{{reportingUrl}}/v1/resource", "host": ["{{reportingUrl}}"], "path": ["v1","resource"] } } },
+				{ "name": "Checklists", "request": { "auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{reportingToken}}", "type": "string" } ] }, "method": "GET", "header": [], "url": { "raw": "{{reportingUrl}}/v1/checklist-registrations", "host": ["{{reportingUrl}}"], "path": ["v1","checklist-registrations"] } } },
+				{ "name": "Alerts (incidents)", "request": { "auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{reportingToken}}", "type": "string" } ] }, "method": "GET", "header": [], "url": { "raw": "{{reportingUrl}}/v1/incident-registrations", "host": ["{{reportingUrl}}"], "path": ["v1","incident-registrations"] } } },
+				{ "name": "Project transactions (time)", "request": { "auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{reportingToken}}", "type": "string" } ] }, "method": "GET", "header": [], "url": { "raw": "{{reportingUrl}}/v1/time-registrations", "host": ["{{reportingUrl}}"], "path": ["v1","time-registrations"] } } },
+				{ "name": "Absences", "request": { "auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{reportingToken}}", "type": "string" } ] }, "method": "GET", "header": [], "url": { "raw": "{{reportingUrl}}/v1/absence-registrations", "host": ["{{reportingUrl}}"], "path": ["v1","absence-registrations"] } } },
+				{ "name": "Payroll lines", "request": { "auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{reportingToken}}", "type": "string" } ] }, "method": "GET", "header": [], "url": { "raw": "{{reportingUrl}}/v1/payroll-lines", "host": ["{{reportingUrl}}"], "path": ["v1","payroll-lines"] } } },
+				{ "name": "Images", "request": { "auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{reportingToken}}", "type": "string" } ] }, "method": "GET", "header": [], "url": { "raw": "{{reportingUrl}}/v1/images", "host": ["{{reportingUrl}}"], "path": ["v1","images"] } } }
+			]
+		}
+	],
+	"variable": [
+		{ "key": "identityUrl", "value": "https://identity.ditio.app", "type": "default" },
+		{ "key": "baseUrl", "value": "https://integration.ditio.no", "type": "default" },
+		{ "key": "reportingUrl", "value": "https://core-api.ditio.app/reporting", "type": "default" },
+		{ "key": "scope", "value": "ditioapiv3", "type": "default" },
+		{ "key": "reportingScope", "value": "reportingapiv1", "type": "default" },
+		{ "key": "clientId", "value": "", "type": "default" },
+		{ "key": "clientSecret", "value": "", "type": "secret" },
+		{ "key": "companyId", "value": "", "type": "default" },
+		{ "key": "accessToken", "value": "", "type": "secret" },
+		{ "key": "reportingToken", "value": "", "type": "secret" },
+		{ "key": "projectId", "value": "", "type": "default" },
+		{ "key": "projectNumber", "value": "P-1001", "type": "default" },
+		{ "key": "taskId", "value": "", "type": "default" },
+		{ "key": "machineId", "value": "", "type": "default" },
+		{ "key": "companyProfileId", "value": "", "type": "default" },
+		{ "key": "fileReferenceId", "value": "", "type": "default" }
+	]
+}
