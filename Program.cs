@@ -21,9 +21,8 @@ var examples = new (string Key, string Name, Func<DitioConfig, Task> Run)[]
     ("6",  "Employees (v5)",                               EmployeesV5Example.RunAsync),
     ("7",  "Machines & equipment",                         MachinesExample.RunAsync),
     ("8",  "Certificates",                                 CertificatesExample.RunAsync),
-    ("9",  "Payroll export",                               PayrollExportExample.RunAsync),
-    ("10", "Data extraction (everything, out of Ditio)",   DataExtractionExample.RunAsync),
-    ("11", "Reference data (machine types, alert types)",  ReferenceDataExample.RunAsync),
+    ("9",  "Data extraction (everything, out of Ditio)",   DataExtractionExample.RunAsync),
+    ("10", "Reference data (machine types, alert types)",  ReferenceDataExample.RunAsync),
 };
 
 var choice = args.Length > 0 ? args[0] : null;

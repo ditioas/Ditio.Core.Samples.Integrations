@@ -11,23 +11,22 @@ Example integrations for the **Ditio Core API** — one folder per integration k
 
 **Start here**
 
-- [`01-authentication`](01-authentication/README.md) — get an OAuth2 token (shared by everything below)
+- [`authentication`](authentication/README.md) — get an OAuth2 token (shared by everything below)
 
 **Send data into Ditio** (create / update)
 
-- [`02-projects`](02-projects/README.md) — projects
-- [`03-work-orders`](03-work-orders/README.md) — work orders (tasks)
-- [`07-machines`](07-machines/README.md) — machines & equipment
-- [`11-reference-data`](11-reference-data/README.md) — machine types, alert types (lookups you need first)
-- [`05-users`](05-users/README.md) — users (v4)
-- [`06-employees-v5`](06-employees-v5/README.md) — employees (v5, **recommended**)
-- [`08-certificates`](08-certificates/README.md) — user certificates
-- [`04-documents`](04-documents/README.md) — documents on projects & work orders
+- [`projects`](projects/README.md) — projects
+- [`work-orders`](work-orders/README.md) — work orders (tasks)
+- [`machines`](machines/README.md) — machines & equipment
+- [`reference-data`](reference-data/README.md) — machine types, alert types (lookups you need first)
+- [`users`](users/README.md) — users (v4)
+- [`employees-v5`](employees-v5/README.md) — employees (v5, **recommended**)
+- [`certificates`](certificates/README.md) — user certificates
+- [`documents`](documents/README.md) — documents on projects & work orders
 
 **Get data out of Ditio** (read / sync)
 
-- [`10-data-extraction`](10-data-extraction/README.md) — projects, work orders, checklists, alerts, project transactions, absences, payroll, users, images … (paginated `v1/*`)
-- [`09-payroll-export`](09-payroll-export/README.md) — dedicated payroll / absence export
+- [`data-extraction`](data-extraction/README.md) — projects, work orders, checklists, alerts, project transactions, absences, payroll, users, images … (paginated `v1/*`)
 
 **Other**
 
@@ -96,6 +95,6 @@ Import [`postman/Ditio-Integration.postman_collection.json`](postman/README.md) 
 
 ## Notes
 
-- **Tokens are short-lived** (~30 min by default) — cache and reuse them (see [`01-authentication`](01-authentication/README.md)).
+- **Tokens are short-lived** (~30 min by default) — cache and reuse them (see [`authentication`](authentication/README.md)).
 - Most write endpoints require **Administrator**-level access and are **company-scoped**.
 - The authoritative schema reference is the **Swagger** above.

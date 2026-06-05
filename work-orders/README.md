@@ -1,6 +1,6 @@
 # 03 — Work orders (tasks)
 
-`api/v4/integration/tasks` · scope `ditioapiv3`. A work order belongs to a project — create/find the project first ([`../02-projects`](../02-projects)). Set `$BASE_URL` / `$TOKEN` — see [`../01-authentication`](../01-authentication).
+`api/v4/integration/tasks` · scope `ditioapiv3`. A work order belongs to a project — create/find the project first ([`../projects`](../projects)). Set `$BASE_URL` / `$TOKEN` — see [`../authentication`](../authentication).
 
 ## Create
 

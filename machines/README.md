@@ -1,6 +1,6 @@
 # 07 — Machines & equipment
 
-`api/v4/integration/machines` · scope `ditioapiv3`. Set `$BASE_URL` / `$TOKEN` — see [`../01-authentication`](../01-authentication).
+`api/v4/integration/machines` · scope `ditioapiv3`. Set `$BASE_URL` / `$TOKEN` — see [`../authentication`](../authentication).
 
 > A machine's `typeId` must match an existing machine type in your company (e.g. `beltemaskin`, `hjullaster`, `dumper`, `lastebil`). List valid types with `GET $BASE_URL/api/MachineType`. **Equipment** (`isEquipment: true`) does not validate `typeId`.
 

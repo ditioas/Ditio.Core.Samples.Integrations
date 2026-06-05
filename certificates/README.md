@@ -1,6 +1,6 @@
 # 08 — Certificates
 
-`api/v4/integration/certificates` · scope `ditioapiv3`. Manage user certificates/qualifications (safety courses, builder cards, crane licenses). Matched to a user by `employeeNumber` + `certificateType`. Set `$BASE_URL` / `$TOKEN` — see [`../01-authentication`](../01-authentication).
+`api/v4/integration/certificates` · scope `ditioapiv3`. Manage user certificates/qualifications (safety courses, builder cards, crane licenses). Matched to a user by `employeeNumber` + `certificateType`. Set `$BASE_URL` / `$TOKEN` — see [`../authentication`](../authentication).
 
 ## Create or update (array)
 

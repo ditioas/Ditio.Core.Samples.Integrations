@@ -17,6 +17,6 @@ public static class ReferenceDataExample
         await api.GetAsync("api/ProjNotificationTypeSetup");
 
         // Payroll types and absence types are configured in Ditio and referenced by id in the
-        // payroll export filters (payrollTypeIds / absenceTypeIds — see 09-payroll-export).
+        // payroll export filters (payrollTypeIds / absenceTypeIds — see data-extraction (v1/payroll-lines, v1/absence-registrations).
     }
 }

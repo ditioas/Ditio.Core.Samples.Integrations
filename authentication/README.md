@@ -35,7 +35,7 @@ Tokens a client fetches itself are **short-lived** (~30 minutes by default, conf
 
 | Scope | API |
 |-------|-----|
-| `ditioapiv3` | Integration + core API (`api/v4/integration/*`, `api/v5/integration/*`, `api/payroll-export`, `api/file`) |
+| `ditioapiv3` | Integration + core API (`api/v4/integration/*`, `api/v5/integration/*`, `api/file`) |
 | `reportingapiv1` | Reporting / data-extraction API (`v1/*`) |
 
 Request multiple in one token by space-separating: `scope=ditioapiv3 reportingapiv1`.
