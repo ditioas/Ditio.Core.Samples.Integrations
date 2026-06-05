@@ -1,8 +1,8 @@
 # 05 — Users (v4)
 
-`api/v4/integration/users` · scope `ditioapiv3`. Manage employee accounts; matched by `employeeNumber`. Set `$BASE_URL` / `$TOKEN` — see [`../01-authentication`](../01-authentication).
+`api/v4/integration/users` · scope `ditioapiv3`. Manage employee accounts; matched by `employeeNumber`. Set `$BASE_URL` / `$TOKEN` — see [`../authentication`](../authentication).
 
-> **New integrations should prefer the v5 Employees API** ([`../06-employees-v5`](../06-employees-v5)). v4 remains available but gets no new features.
+> **New integrations should prefer the v5 Employees API** ([`../employees-v5`](../employees-v5)). v4 remains available but gets no new features.
 
 ## Create
 

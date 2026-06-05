@@ -1,6 +1,6 @@
 # 02 — Projects
 
-`api/v4/integration/projects` · scope `ditioapiv3`. Set `$BASE_URL` / `$TOKEN` first — see [`../01-authentication`](../01-authentication).
+`api/v4/integration/projects` · scope `ditioapiv3`. Set `$BASE_URL` / `$TOKEN` first — see [`../authentication`](../authentication).
 
 ## Create
 

@@ -7,7 +7,7 @@
     <Nullable>enable</Nullable>
     <RootNamespace>Ditio.Samples</RootNamespace>
     <AssemblyName>Ditio.Samples</AssemblyName>
-    <!-- Examples live in numbered folders (01-authentication, 02-projects, …);
+    <!-- Examples live in per-integration folders (authentication, projects, …);
          the SDK compiles every *.cs under the project directory by default. -->
   </PropertyGroup>
 

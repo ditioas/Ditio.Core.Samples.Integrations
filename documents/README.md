@@ -1,6 +1,6 @@
 # 04 — Documents
 
-Attach documents (PDF, Word, images, …) to **projects** and **work orders**. `api/v4/integration/projects|tasks/{id}/files` · scope `ditioapiv3`. Set `$BASE_URL` / `$TOKEN` — see [`../01-authentication`](../01-authentication).
+Attach documents (PDF, Word, images, …) to **projects** and **work orders**. `api/v4/integration/projects|tasks/{id}/files` · scope `ditioapiv3`. Set `$BASE_URL` / `$TOKEN` — see [`../authentication`](../authentication).
 
 ## Upload (multipart)
 

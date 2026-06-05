@@ -1,6 +1,6 @@
 # 06 — Employees (v5)
 
-`api/v5/integration/employees` · scope `ditioapiv3`. The modern replacement for the v4 Users API — consistent `employeeNumber` identifier, true PATCH, dedicated employment operations. **Use this for new integrations.** Set `$BASE_URL` / `$TOKEN` — see [`../01-authentication`](../01-authentication).
+`api/v5/integration/employees` · scope `ditioapiv3`. The modern replacement for the v4 Users API — consistent `employeeNumber` identifier, true PATCH, dedicated employment operations. **Use this for new integrations.** Set `$BASE_URL` / `$TOKEN` — see [`../authentication`](../authentication).
 
 ## Create (profile + first employment together)
 
