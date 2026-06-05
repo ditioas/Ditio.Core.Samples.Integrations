@@ -148,7 +148,7 @@
 	"variable": [
 		{ "key": "identityUrl", "value": "https://identity.ditio.app", "type": "default" },
 		{ "key": "baseUrl", "value": "https://integration.ditio.no", "type": "default" },
-		{ "key": "reportingUrl", "value": "https://core-api.ditio.app/core", "type": "default" },
+		{ "key": "reportingUrl", "value": "https://core-api.ditio.app/reporting", "type": "default" },
 		{ "key": "scope", "value": "ditioapiv3", "type": "default" },
 		{ "key": "reportingScope", "value": "reportingapiv1", "type": "default" },
 		{ "key": "clientId", "value": "", "type": "default" },

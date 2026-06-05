@@ -2,11 +2,11 @@
 
 The recommended way to pull data **out** of Ditio in bulk. Paginated **reporting API** on a different host **and** scope than the integration API:
 
-- **Base:** `https://core-api.ditio.app/core` (test: `https://core-api.ditio.dev/core`)
+- **Base:** `https://core-api.ditio.app/reporting` (test: `https://core-api.ditio.dev/reporting`)
 - **Scope:** `reportingapiv1`
 
 ```bash
-REPORTING_URL=https://core-api.ditio.app/core      # test: https://core-api.ditio.dev/core
+REPORTING_URL=https://core-api.ditio.app/reporting   # test: https://core-api.ditio.dev/reporting
 TOKEN=$(curl -s -X POST $IDENTITY/connect/token \
   -d "grant_type=client_credentials" -d "client_id=YOUR_CLIENT_ID" -d "client_secret=YOUR_CLIENT_SECRET" \
   -d "scope=reportingapiv1" | jq -r '.access_token')

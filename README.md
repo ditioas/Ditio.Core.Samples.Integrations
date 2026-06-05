@@ -40,7 +40,7 @@ Example integrations for the **Ditio Core API** — one folder per integration k
 |---|---|---|
 | **Identity** | `https://identity.ditio.app` | `https://identity.ditio.dev` |
 | **Integration API** (`api/v4`, `api/v5`) | `https://integration.ditio.no` | `https://core-api.ditio.dev/core` |
-| **Reporting API** (`v1/*`) | `https://core-api.ditio.app/core` | `https://core-api.ditio.dev/core` |
+| **Reporting API** (`v1/*`) | `https://core-api.ditio.app/reporting` | `https://core-api.ditio.dev/reporting` |
 | **Scope** — integration / core | `ditioapiv3` | `ditioapiv3` |
 | **Scope** — reporting | `reportingapiv1` | `reportingapiv1` |
 

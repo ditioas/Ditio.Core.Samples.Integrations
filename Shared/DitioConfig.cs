@@ -15,8 +15,8 @@ public sealed class DitioConfig
     /// <summary>Integration API base (api/v4, api/v5). Production: integration.ditio.no · Test: core-api.ditio.dev/core</summary>
     public string BaseUrl { get; set; } = "https://integration.ditio.no";
 
-    /// <summary>Reporting / data-extraction API base (v1/*). Production: core-api.ditio.app/core · Test: core-api.ditio.dev/core</summary>
-    public string ReportingBaseUrl { get; set; } = "https://core-api.ditio.app/core";
+    /// <summary>Reporting / data-extraction API base (v1/*). Production: core-api.ditio.app/reporting · Test: core-api.ditio.dev/reporting</summary>
+    public string ReportingBaseUrl { get; set; } = "https://core-api.ditio.app/reporting";
 
     /// <summary>Scope for the integration + core API.</summary>
     public string Scope { get; set; } = "ditioapiv3";

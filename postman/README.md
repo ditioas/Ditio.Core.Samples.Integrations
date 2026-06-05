@@ -23,7 +23,7 @@ A collection covering the Ditio Core integration APIs, plus **Production** and *
 |---|---|---|
 | `identityUrl` | `https://identity.ditio.app` | `https://identity.ditio.dev` |
 | `baseUrl` (integration) | `https://integration.ditio.no` | `https://core-api.ditio.dev/core` |
-| `reportingUrl` (v1) | `https://core-api.ditio.app/core` | `https://core-api.ditio.dev/core` |
+| `reportingUrl` (v1) | `https://core-api.ditio.app/reporting` | `https://core-api.ditio.dev/reporting` |
 
 Lookup/create requests auto-fill `projectId` / `taskId` / `machineId` / `fileReferenceId` from the response, so you can run a folder top-to-bottom.
 
