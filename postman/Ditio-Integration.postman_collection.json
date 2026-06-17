@@ -64,10 +64,14 @@
 		},
 		{
 			"name": "Work orders (tasks)",
+			"description": "safeJobAnalysisApprovalRequired, measureUnitQty, unitId, costPrice, price and fixedResourcePrice are optional. Omit them to inherit from the project's template work order (if one is marked as template in the Ditio backoffice); values you send win over the template. PUT keeps these settings when omitted instead of resetting them.",
 			"item": [
 				{ "name": "Create work order", "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [ "var j = pm.response.json(); if (j && j.id) pm.collectionVariables.set('taskId', j.id);" ] } } ],
 					"request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ],
 						"body": { "mode": "raw", "raw": "{\n  \"companyId\": \"{{companyId}}\",\n  \"projectId\": \"{{projectId}}\",\n  \"externalId\": \"WO-100\",\n  \"name\": \"Foundation work\",\n  \"active\": true\n}" },
+						"url": { "raw": "{{baseUrl}}/api/v4/integration/tasks", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","tasks"] } } },
+				{ "name": "Create work order (optional settings; omitted ones inherit from template)", "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ],
+						"body": { "mode": "raw", "raw": "{\n  \"companyId\": \"{{companyId}}\",\n  \"projectId\": \"{{projectId}}\",\n  \"externalId\": \"WO-101\",\n  \"name\": \"Earthworks\",\n  \"active\": true,\n  \"safeJobAnalysisApprovalRequired\": true,\n  \"costPrice\": 1200.0\n}" },
 						"url": { "raw": "{{baseUrl}}/api/v4/integration/tasks", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","tasks"] } } },
 				{ "name": "List work orders in project", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v4/integration/tasks/project/{{projectId}}", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","tasks","project","{{projectId}}"] } } },
 				{ "name": "Patch work order (partial)", "request": { "method": "PATCH", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Foundation (phase 2)\"\n}" }, "url": { "raw": "{{baseUrl}}/api/v4/integration/tasks/{{taskId}}", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","tasks","{{taskId}}"] } } }

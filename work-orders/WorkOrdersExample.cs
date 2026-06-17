@@ -18,6 +18,11 @@ public static class WorkOrdersExample
         string? projectId = project?.id;
 
         // Create a work order.
+        //
+        // Settings like safeJobAnalysisApprovalRequired, measureUnitQty, unitId, costPrice,
+        // price and fixedResourcePrice are optional. Omit them to leave them "not provided":
+        // if the project has a template work order (marked as template in the Ditio backoffice),
+        // omitted settings are inherited from it. Any value you send wins over the template.
         var created = await api.PostAsync("api/v4/integration/tasks", new
         {
             companyId = cfg.CompanyId,
@@ -25,6 +30,11 @@ public static class WorkOrdersExample
             externalId = "SAMPLE-WO-100",
             name = "Foundation work",
             active = true,
+            // Provided explicitly -> wins over the template:
+            safeJobAnalysisApprovalRequired = true,
+            costPrice = 1200.0,
+            // measureUnitQty / unitId / price / fixedResourcePrice omitted -> inherited from the
+            // project's template work order if one exists.
         });
         string? taskId = created?.id;
 
