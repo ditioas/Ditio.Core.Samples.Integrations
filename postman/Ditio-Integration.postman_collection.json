@@ -76,13 +76,15 @@
 		{
 			"name": "Documents",
 			"item": [
-				{ "name": "Upload to project", "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [ "var j = pm.response.json(); if (j && j.files && j.files[0] && j.files[0].fileReference) pm.collectionVariables.set('fileReferenceId', j.files[0].fileReference.id);" ] } } ],
-					"request": { "method": "POST", "header": [], "body": { "mode": "formdata", "formdata": [ { "key": "file", "type": "file", "src": [] } ] }, "url": { "raw": "{{baseUrl}}/api/v4/integration/projects/{{projectId}}/files?replaceExistingFilesWithSameName=true", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","projects","{{projectId}}","files"], "query": [ { "key": "replaceExistingFilesWithSameName", "value": "true" } ] } } },
-				{ "name": "List project documents", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v4/integration/projects/{{projectId}}/files", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","projects","{{projectId}}","files"] } } },
-				{ "name": "Delete project document", "request": { "method": "DELETE", "header": [], "url": { "raw": "{{baseUrl}}/api/v4/integration/projects/{{projectId}}/files/{{fileReferenceId}}", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","projects","{{projectId}}","files","{{fileReferenceId}}"] } } },
-				{ "name": "Upload to work order", "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [ "var j = pm.response.json(); if (j && j.files && j.files[0] && j.files[0].fileReference) pm.collectionVariables.set('fileReferenceId', j.files[0].fileReference.id);" ] } } ], "request": { "method": "POST", "header": [], "body": { "mode": "formdata", "formdata": [ { "key": "file", "type": "file", "src": [] } ] }, "url": { "raw": "{{baseUrl}}/api/v4/integration/tasks/{{taskId}}/files?replaceExistingFilesWithSameName=true", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","tasks","{{taskId}}","files"], "query": [ { "key": "replaceExistingFilesWithSameName", "value": "true" } ] } } },
-				{ "name": "List work order documents", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v4/integration/tasks/{{taskId}}/files", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","tasks","{{taskId}}","files"] } } },
-				{ "name": "Delete work order document", "request": { "method": "DELETE", "header": [], "url": { "raw": "{{baseUrl}}/api/v4/integration/tasks/{{taskId}}/files/{{fileReferenceId}}", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","tasks","{{taskId}}","files","{{fileReferenceId}}"] } } }
+				{ "name": "Upload to project", "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [ "var j = pm.response.json(); if (j && j.files && j.files[0] && j.files[0].fileReference) pm.collectionVariables.set('fileReferenceId', j.files[0].fileReference.id); if (j && j.pageExternalId) pm.collectionVariables.set('pageExternalId', j.pageExternalId);" ] } } ],
+					"request": { "method": "POST", "header": [], "body": { "mode": "formdata", "formdata": [ { "key": "file", "type": "file", "src": [] } ] }, "url": { "raw": "{{baseUrl}}/api/v4/integration/projects/{{projectId}}/documents?section={{section}}&replaceExistingFilesWithSameName=true", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","projects","{{projectId}}","documents"], "query": [ { "key": "section", "value": "{{section}}" }, { "key": "replaceExistingFilesWithSameName", "value": "true" } ] } } },
+				{ "name": "List project documents", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v4/integration/projects/{{projectId}}/documents", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","projects","{{projectId}}","documents"] } } },
+				{ "name": "Download project document", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v4/integration/projects/{{projectId}}/documents/{{fileReferenceId}}", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","projects","{{projectId}}","documents","{{fileReferenceId}}"] } } },
+				{ "name": "Delete project document", "request": { "method": "DELETE", "header": [], "url": { "raw": "{{baseUrl}}/api/v4/integration/projects/{{projectId}}/documents/{{fileReferenceId}}", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","projects","{{projectId}}","documents","{{fileReferenceId}}"] } } },
+				{ "name": "Upload to work order", "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [ "var j = pm.response.json(); if (j && j.files && j.files[0] && j.files[0].fileReference) pm.collectionVariables.set('fileReferenceId', j.files[0].fileReference.id);" ] } } ], "request": { "method": "POST", "header": [], "body": { "mode": "formdata", "formdata": [ { "key": "file", "type": "file", "src": [] } ] }, "url": { "raw": "{{baseUrl}}/api/v4/integration/tasks/{{taskId}}/documents?replaceExistingFilesWithSameName=true", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","tasks","{{taskId}}","documents"], "query": [ { "key": "replaceExistingFilesWithSameName", "value": "true" } ] } } },
+				{ "name": "List work order documents", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v4/integration/tasks/{{taskId}}/documents", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","tasks","{{taskId}}","documents"] } } },
+				{ "name": "Download work order document", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v4/integration/tasks/{{taskId}}/documents/{{fileReferenceId}}", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","tasks","{{taskId}}","documents","{{fileReferenceId}}"] } } },
+				{ "name": "Delete work order document", "request": { "method": "DELETE", "header": [], "url": { "raw": "{{baseUrl}}/api/v4/integration/tasks/{{taskId}}/documents/{{fileReferenceId}}", "host": ["{{baseUrl}}"], "path": ["api","v4","integration","tasks","{{taskId}}","documents","{{fileReferenceId}}"] } } }
 			]
 		},
 		{
@@ -158,6 +160,8 @@
 		{ "key": "taskId", "value": "", "type": "default" },
 		{ "key": "machineId", "value": "", "type": "default" },
 		{ "key": "companyProfileId", "value": "", "type": "default" },
-		{ "key": "fileReferenceId", "value": "", "type": "default" }
+		{ "key": "fileReferenceId", "value": "", "type": "default" },
+		{ "key": "section", "value": "Drawings", "type": "default" },
+		{ "key": "pageExternalId", "value": "", "type": "default" }
 	]
 }
