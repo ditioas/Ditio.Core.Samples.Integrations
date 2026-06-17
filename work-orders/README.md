@@ -45,6 +45,6 @@ curl -X DELETE $BASE_URL/api/v4/integration/tasks/{id} -H "Authorization: Bearer
 
 A work order can't be deleted while it has time registrations; deactivate (`active:false`) instead.
 
-`PUT` replaces the object, but the optional settings listed above keep their existing value when omitted (rather than being reset) — use `PATCH` for explicit partial updates.
+`PUT` is a full replace: omitted fields reset to their defaults (and the template is not consulted on update — template fill-in is create-only). Use `PATCH` to change only some fields without resetting the rest.
 
 **C#:** [`WorkOrdersExample.cs`](WorkOrdersExample.cs).

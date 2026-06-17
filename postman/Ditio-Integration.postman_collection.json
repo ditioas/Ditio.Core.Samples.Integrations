@@ -64,7 +64,7 @@
 		},
 		{
 			"name": "Work orders (tasks)",
-			"description": "safeJobAnalysisApprovalRequired, measureUnitQty, unitId, costPrice, price and fixedResourcePrice are optional. Omit them to inherit from the project's template work order (if one is marked as template in the Ditio backoffice); values you send win over the template. PUT keeps these settings when omitted instead of resetting them.",
+			"description": "safeJobAnalysisApprovalRequired, measureUnitQty, unitId, costPrice, price and fixedResourcePrice are optional. On CREATE, omitting them inherits from the project's template work order (if one is marked as template in the Ditio backoffice); values you send win. PUT is a full replace (omitted fields reset to defaults, template not consulted); use PATCH for partial updates.",
 			"item": [
 				{ "name": "Create work order", "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [ "var j = pm.response.json(); if (j && j.id) pm.collectionVariables.set('taskId', j.id);" ] } } ],
 					"request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ],
