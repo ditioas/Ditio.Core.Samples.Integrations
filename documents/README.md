@@ -1,6 +1,6 @@
 # 04 — Documents
 
-Push documents (PDF, Word, images, …) to **projects** and **work orders**. `api/v4/integration/projects|tasks/{id}/documents` · scope `ditioapiv3`. Set `$BASE_URL` / `$TOKEN` — see [`../authentication`](../authentication).
+Push documents (PDF, Word, images, …) to a **project** via `POST api/v4/integration/projects/{id}/documents` (scope `ditioapiv3`). **Work orders** work the same way — swap `projects` for `tasks` (see [Work orders](#work-orders) below). Set `$BASE_URL` / `$TOKEN` — see [`../authentication`](../authentication).
 
 Pushed documents surface in the Ditio **Info Center**, so the project's members see them in the **mobile app**, grouped under a per-project folder and (optionally) into named **sections**.
 
@@ -14,7 +14,7 @@ flowchart LR
         D["📄 Project documents<br/>drawings, contracts, …"]
     end
     subgraph API["⚙️ Ditio Integration API"]
-        EP["POST projects|tasks/{id}/documents<br/>multipart · ?section · Bearer token"]
+        EP["POST projects/{id}/documents<br/>multipart · ?section · Bearer token"]
         SVC["Routing: document → Info Center<br/>(idempotent upsert)"]
     end
     subgraph Store["🗄️ Ditio Info Center"]
