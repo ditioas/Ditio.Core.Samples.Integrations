@@ -75,7 +75,7 @@ flowchart LR
     end
 
     subgraph Store["🗄️ Ditio Info Center"]
-        FOLDER["📁 Folder — one per project<br/>'P-2025-001 – Highway E6'"]
+        FOLDER["📁 Folder — one per project<br/>'P-2025-001 - Highway E6'"]
         PAGE["📑 Page — one per section<br/>'Drawings', 'Contracts', …"]
         FILE["📎 Documents on the page"]
     end
@@ -98,7 +98,7 @@ flowchart LR
 **What gets created** — the durable handle is `(project, section)`; re-syncing to the same handle updates the same page rather than duplicating it:
 
 ```
-📁  P-2025-001 – Highway E6            (folder, one per project — visible to the project's employees)
+📁  P-2025-001 - Highway E6            (folder, one per project, visible to the project's employees)
     ├── 📑 Drawings                    (section page)
     │     ├── 📎 Drawing-A1.pdf
     │     └── 📎 Site-plan.docx
@@ -195,7 +195,7 @@ curl -X GET $BASE_URL/api/v4/integration/projects \
     "id": "65f1a2b3c4d5e6f7a8b9c0d1",
     "companyId": "YOUR_COMPANY_ID",
     "projectNumber": "P-2025-001",
-    "name": "Highway E6 — North section",
+    "name": "Highway E6 - North section",
     "active": true
   }
 ]
