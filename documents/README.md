@@ -10,7 +10,7 @@ You push to a **project** (or work order). Ditio routes each document into the p
 
 ```mermaid
 flowchart LR
-    subgraph Invo["🏢 Invo (partner system)"]
+    subgraph Src["🏢 Document system"]
         D["📄 Project documents<br/>drawings, contracts, …"]
     end
     subgraph API["⚙️ Ditio Integration API"]
