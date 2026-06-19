@@ -4,6 +4,40 @@ Push documents (PDF, Word, images, …) to **projects** and **work orders**. `ap
 
 Pushed documents surface in the Ditio **Info Center**, so the project's members see them in the **mobile app**, grouped under a per-project folder and (optionally) into named **sections**.
 
+## How documents flow into Ditio
+
+You push to a **project** (or work order). Ditio routes each document into the project's Info Center — a folder per project, a page per `section` — so the project's field workers see it on mobile. You never call the Info Center directly; these endpoints do it for you, idempotently.
+
+```mermaid
+flowchart LR
+    subgraph Invo["🏢 Invo (partner system)"]
+        D["📄 Project documents<br/>drawings, contracts, …"]
+    end
+    subgraph API["⚙️ Ditio Integration API"]
+        EP["POST projects|tasks/{id}/documents<br/>multipart · ?section · Bearer token"]
+        SVC["Routing: document → Info Center<br/>(idempotent upsert)"]
+    end
+    subgraph Store["🗄️ Ditio Info Center"]
+        FOLDER["📁 Folder — one per project"]
+        PAGE["📑 Page — one per section"]
+        FILE["📎 Documents on the page"]
+    end
+    subgraph Mobile["📱 Ditio mobile app"]
+        FW["👷 Field worker on the project<br/>Info Center → folder → page → open"]
+    end
+    D -->|"1 · upload"| EP
+    EP -->|"2 · verify your company owns the project"| SVC
+    SVC -->|"3 · ensure folder (by project)"| FOLDER
+    FOLDER --> PAGE
+    SVC -->|"4 · ensure page (by project + section)"| PAGE
+    PAGE --> FILE
+    SVC -->|"5 · attach files (dedupe / replace-by-name)"| FILE
+    FILE -->|"6 · visible to project members"| FW
+    EP -.->|"returns fileReference.id + pageExternalId"| D
+```
+
+The durable handle is `(project, section)` — re-syncing to the same handle updates the same page instead of duplicating it.
+
 ## Upload (multipart)
 
 ```bash
