@@ -39,6 +39,31 @@ public sealed class DitioApiClient
         return await ReadResponse(method, path, response);
     }
 
+    /// <summary>
+    /// Downloads a binary response body to a local file (used by the Documents API's
+    /// GET .../documents/{fileReferenceId}, which streams the document bytes as
+    /// application/octet-stream). Returns the path written, or null on a non-success status.
+    /// </summary>
+    public async Task<string?> DownloadFileAsync(string path, string destinationPath)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, path.TrimStart('/'));
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await _tokens.GetTokenAsync(_scope));
+
+        using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        Console.WriteLine($"GET {path} -> {(int)response.StatusCode} {response.StatusCode}");
+        if (!response.IsSuccessStatusCode)
+        {
+            Console.WriteLine($"  Error: {await response.Content.ReadAsStringAsync()}");
+            return null;
+        }
+
+        await using var source = await response.Content.ReadAsStreamAsync();
+        await using var destination = File.Create(destinationPath);
+        await source.CopyToAsync(destination);
+        Console.WriteLine($"  Saved {response.Content.Headers.ContentLength ?? 0} bytes to {destinationPath}");
+        return destinationPath;
+    }
+
     /// <summary>Uploads one or more files as multipart/form-data (used by the Documents API).</summary>
     public async Task<dynamic?> UploadFilesAsync(string path, params string[] filePaths)
     {
