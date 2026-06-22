@@ -42,8 +42,17 @@ public static class DocumentsExample
         // List the document pages (sections) on the project and their files.
         await api.GetAsync($"api/v4/integration/projects/{projectId}/documents");
 
-        // Download a single document by id (gated to the project):
-        //   GET api/v4/integration/projects/{projectId}/documents/{fileReferenceId}
+        // Download a single document by id (gated to the project). The endpoint streams the bytes back
+        // as the response body (200, application/octet-stream + Content-Disposition), so use the binary
+        // download helper rather than GetAsync (which parses JSON).
+        if (fileReferenceId is not null)
+        {
+            var downloadPath = Path.Combine(Path.GetTempPath(), "ditio-sample-document-downloaded.txt");
+            await api.DownloadFileAsync(
+                $"api/v4/integration/projects/{projectId}/documents/{fileReferenceId}", downloadPath);
+            if (File.Exists(downloadPath))
+                File.Delete(downloadPath);
+        }
 
         // Remove the document we just uploaded.
         if (fileReferenceId is not null)

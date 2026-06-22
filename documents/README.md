@@ -331,6 +331,15 @@ GET /api/v4/integration/projects/{id}/documents/{fileReferenceId}
 GET /api/v4/integration/tasks/{id}/documents/{fileReferenceId}
 ```
 
+The endpoint streams the document **bytes directly as the response body** (`200 OK`, `Content-Type: application/octet-stream`, `Content-Disposition` carrying the original filename) — there is no JSON body. Write the body to a file:
+
+```bash
+curl "$BASE_URL/api/v4/integration/projects/{id}/documents/{fileReferenceId}" \
+  -H "Authorization: Bearer $TOKEN" -o Drawing-A1.pdf
+```
+
+A `404` means the document is not on that project/work order.
+
 **Replace** — re-upload to the same `(project, section)` with `?replaceExistingFilesWithSameName=true` (matches by filename).
 
 **Delete:**
