@@ -47,6 +47,27 @@ curl "$REPORTING_URL/v1/project?continuationToken=THE_TOKEN" -H "Authorization: 
 
 Most endpoints accept date-window filters (`modifiedSince` / `modifiedBefore`, `fromDateTime` / `toDateTime`) for incremental sync. See Swagger for each endpoint's filter.
 
-> A documents extractor (`v1/documents`, non-image files) is planned but not yet available.
+## Generated PDFs (`pdfUrl`)
 
-**C#:** [`DataExtractionExample.cs`](DataExtractionExample.cs) — fetches the first page of each endpoint and demonstrates paging.
+Ditio generates PDFs for checklists, alerts (incidents) and absences. Each record on these endpoints carries a `pdfUrl` — an **absolute** link to the rendered PDF:
+
+| PDF | Endpoint | Field |
+|-----|----------|-------|
+| Checklist / form | `v1/checklist-registrations`, `v1/machine-checklist-registrations` | `pdfUrl` |
+| Alert / incident | `v1/incident-registrations`, `v1/machine-incident-registrations` | `pdfUrl` |
+| Absence | `v1/absence-registrations` | `pdfUrl` |
+
+Combine with `modifiedSince` for incremental sync, then download each non-null `pdfUrl`:
+
+```bash
+curl -s "$REPORTING_URL/v1/checklist-registrations?ProjectId=$PROJECT_ID&modifiedSince=2026-06-01T00:00:00Z" \
+  -H "Authorization: Bearer $TOKEN" \
+| jq -r '.data[] | select(.pdfUrl != null) | .pdfUrl' \
+| while read -r url; do curl -sL -H "Authorization: Bearer $TOKEN" -O "$url"; done
+```
+
+`pdfUrl` is `null` until the PDF has been generated (on submit/report) — skip those records and pick them up on a later sync. Checklists also expose files attached inside the checklist via `sections[].attachments[].url` and `sections[].images[].url`.
+
+> A generic documents extractor (`v1/documents`, arbitrary non-image files) is planned but not yet available.
+
+**C#:** [`DataExtractionExample.cs`](DataExtractionExample.cs) — fetches the first page of each endpoint, demonstrates paging, and downloads checklist/alert/absence PDFs via `pdfUrl`.
