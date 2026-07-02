@@ -68,7 +68,7 @@ curl -s "$REPORTING_URL/v1/checklist-registrations?ProjectId=$PROJECT_ID&modifie
 
 `pdfUrl` is `null` until the PDF has been generated (on submit/report) — skip those records and pick them up on a later sync. Checklists also expose files attached inside the checklist via `sections[].attachments[].url` and `sections[].images[].url`.
 
-**Keeping in sync with regenerated PDFs.** A record's PDF is regenerated whenever its status changes (submitted, reported, approved, rejected). The status change bumps the record's modified timestamp, so the record reappears in your next `modifiedSince` pull — take the `pdfUrl` from that latest record. Rendering is asynchronous (a few seconds after the change), so a record can momentarily return a `null` or not-yet-updated `pdfUrl`; skip it and pick it up on the next sync. In short: sync on `modifiedSince`, and re-fetch `pdfUrl` each time a record reappears.
+**Keeping in sync with regenerated PDFs.** A record's PDF is regenerated whenever its status changes (submitted, reported, approved, rejected), synchronously as part of that change — so the record reappears in your next `modifiedSince` pull with its `pdfUrl` already pointing at the current PDF. Sync on `modifiedSince` and re-fetch `pdfUrl` each time a record reappears.
 
 > A generic documents extractor (`v1/documents`, arbitrary non-image files) is planned but not yet available.
 
