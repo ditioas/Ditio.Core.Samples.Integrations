@@ -28,11 +28,16 @@ curl "$BASE_URL/api/v4/integration/machines?includeEquipmentDetails=true"  -H "A
 # Partial update (e.g. hour meter / service)
 curl -X PATCH $BASE_URL/api/v4/integration/machines/{id} -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{ "hourMeter": 3500, "serviceDate": "2025-02-15T00:00:00Z" }'
 
+# Block / unblock check-in (machines only; ignored for equipment)
+curl -X PATCH $BASE_URL/api/v4/integration/machines/{id} -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{ "blockCheckIn": true, "blockCheckInMessage": "Under service" }'
+
 # ESG fuel fields have a dedicated endpoint
 curl -X PATCH $BASE_URL/api/v4/integration/machines/{id}/esg -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{ "fuelConsumptionRate": 12.5, "fuelConsumptionUnit": 0, "fuelType": 1 }'
 ```
 
 `fuelConsumptionUnit`: 0 L/h, 1 L/km, 2 kWh/h, 3 kWh/km, 4 kg/h, 5 kg/km. `fuelType`: 0 none, 1 diesel, 2 biodiesel, 3 gasoline, 4 electric, 5 gas, 6 natural gas, 7 dyed diesel.
+
+Omitting `blockCheckIn` / `blockCheckInMessage` in a `PUT`/`PATCH` leaves the stored values unchanged (JSON `null` counts as omitted; send `""` to clear a stored message), so existing syncs never overwrite blocks configured in Ditio Web.
 
 Deactivate retired machines (`active:false`) rather than deleting.
 
