@@ -20,6 +20,10 @@ curl $BASE_URL/api/v4/integration/projects/by-project-number/P-1001     -H "Auth
 curl $BASE_URL/api/v4/integration/projects/{id}                         -H "Authorization: Bearer $TOKEN"   # by Ditio id
 ```
 
+Looking up a missing project ID and looking up a project that is not available to the authenticated
+company both return the same `404 Not Found` response. Callers should treat either response as an
+unavailable project without trying to distinguish the reason.
+
 ## Update / delete
 
 ```bash
@@ -32,6 +36,10 @@ curl -X PATCH $BASE_URL/api/v4/integration/projects/{id} \
 curl -X DELETE $BASE_URL/api/v4/integration/projects/{id} -H "Authorization: Bearer $TOKEN"
 ```
 
-> **Prefer PATCH over PUT.** `PUT /projects/{id}` *replaces the whole project* — any field you omit is wiped. Use `PATCH` (dynamic partial update) for syncs unless you really mean to overwrite everything.
+PATCH requires a JSON object and preserves fields you omit. If the project is missing or unavailable
+to the authenticated company, it returns the same `404 Not Found` response and does not create or
+change a project.
+
+> **Prefer PATCH over PUT.** `PUT /projects/{id}` *replaces the whole project* — any field you omit is wiped. Use `PATCH` for syncs unless you really mean to overwrite everything.
 
 **C#:** [`ProjectsExample.cs`](ProjectsExample.cs). Full field reference: Swagger.
