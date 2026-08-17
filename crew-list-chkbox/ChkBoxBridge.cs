@@ -188,6 +188,15 @@ public sealed class ChkBoxBridge(
     /// <summary>Persists state, advancing the cursor only when a cursor is supplied.</summary>
     private void Commit(string? cursor)
     {
+        // A dry run must leave no trace. Persisting here would be silent data loss: the cursor would
+        // move past everything the dry run merely printed, so the first real run would start after
+        // those passages and they would never reach ChkBox. "Nothing is written" has to include the
+        // state file, not just the API.
+        if (config.DryRun)
+        {
+            return;
+        }
+
         if (cursor is not null)
             state.Cursor = cursor;
 

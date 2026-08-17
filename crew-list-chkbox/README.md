@@ -81,7 +81,7 @@ Environment variables work too: `DITIO_ChkBox__ApiKey`, `DITIO_ChkBox__DryRun`, 
 
 | Setting | Default | Notes |
 |---|---|---|
-| `DryRun` | `true` | Prints the passages it would post, writes nothing. **Run this way first.** |
+| `DryRun` | `true` | Prints the passages it would post and writes nothing — not to ChkBox, and not to the state file either, so the cursor stays put and the first live run still posts everything you previewed. **Run this way first.** |
 | `PollIntervalMinutes` | `15` | Ditio's crew data does not change fast enough to warrant less. |
 | `RunOnce` | `false` | Run one cycle and exit — use under cron or a Kubernetes CronJob. |
 | `Source` | `online-users` | See [Choosing a source](#choosing-a-source). |
@@ -149,7 +149,8 @@ The second guard is what protects you if the state file is lost. It is verified 
 state file deleted and the same crew data replayed, the bridge posts nothing.
 
 The cursor only advances when a cycle completes without errors, so a Ditio outage or a failed post
-means the next cycle retries rather than skipping.
+means the next cycle retries rather than skipping. A dry run does not advance it either — otherwise
+switching `DryRun` off would silently skip every passage you had just previewed.
 
 ## Limitations & notes
 
