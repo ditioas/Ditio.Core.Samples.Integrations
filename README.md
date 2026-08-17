@@ -28,6 +28,10 @@ Example integrations for the **Ditio Core API** — one folder per integration k
 
 - [`data-extraction`](data-extraction/README.md) — projects, work orders, checklists, alerts, project transactions, absences, payroll, users, images … (paginated `v1/*`)
 
+**Send data to another system**
+
+- [`crew-list-chkbox`](crew-list-chkbox/README.md) — poll the crew list (*mannskapsliste*) and push check-in/check-out passages to Infotech's ChkBox / byggekortleser HSE register
+
 **Other**
 
 - [`postman`](postman/README.md) — Postman collection + Production/Test environments

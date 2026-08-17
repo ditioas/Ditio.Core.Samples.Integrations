@@ -23,6 +23,7 @@ var examples = new (string Key, string Name, Func<DitioConfig, Task> Run)[]
     ("8",  "Certificates",                                 CertificatesExample.RunAsync),
     ("9",  "Data extraction (everything, out of Ditio)",   DataExtractionExample.RunAsync),
     ("10", "Reference data (machine types, alert types)",  ReferenceDataExample.RunAsync),
+    ("11", "Crew list → Infotech ChkBox (HSE register)",   CrewListChkBoxExample.RunAsync),
 };
 
 var choice = args.Length > 0 ? args[0] : null;
