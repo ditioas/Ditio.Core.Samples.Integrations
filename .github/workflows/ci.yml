@@ -1,0 +1,44 @@
+name: CI
+
+# These samples are public and customers download and run them, so a build that
+# does not compile is a customer-facing problem. This is the repo's only gate —
+# there are no tests here by design, the samples are illustrative.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+# Read-only. Fork pull requests run with this token and no access to secrets,
+# which is why this uses `pull_request` rather than `pull_request_target`.
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          # Matches the TargetFramework in Ditio.Samples.csproj.
+          dotnet-version: "8.0.x"
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        # Warnings are not errors here: the samples favour readability over
+        # ceremony, and a warning should not block a docs-only change.
+        run: dotnet build --no-restore --configuration Release
