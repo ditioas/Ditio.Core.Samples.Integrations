@@ -42,10 +42,11 @@ public sealed class ChkBoxBridgeConfig
     public bool RunOnce { get; set; }
 
     /// <summary>
-    /// Which crew source to read. <c>online-users</c> works against Ditio today;
-    /// <c>crew-list-registrations</c> targets the public data-extraction endpoint. See the README.
+    /// Which crew source to read. <c>crew-list-registrations</c> is the public data-extraction
+    /// endpoint and the one to use; <c>online-users</c> is the older backoffice crew list, kept for
+    /// anyone already on it. See the README.
     /// </summary>
-    public string Source { get; set; } = "online-users";
+    public string Source { get; set; } = "crew-list-registrations";
 
     /// <summary>
     /// Time zone the online-users source's naive timestamps are in — that endpoint returns times in
