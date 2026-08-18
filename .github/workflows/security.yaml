@@ -1,0 +1,18 @@
+name: Security
+
+# Shared secret + SAST scan. Source of truth:
+# ditioas/k8s-app-masshaul-configurations/.github/workflows/reusable-security-scan.yaml
+#
+# Pull requests are diff-scoped, so any pre-existing backlog cannot block a PR;
+# only newly introduced findings fail. Run it manually to sweep the whole tree.
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    uses: ditioas/k8s-app-masshaul-configurations/.github/workflows/reusable-security-scan.yaml@main
