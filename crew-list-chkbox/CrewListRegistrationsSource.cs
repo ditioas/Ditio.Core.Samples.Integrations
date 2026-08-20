@@ -37,8 +37,10 @@ internal sealed class CrewListRegistrationsSource(
         }
         else if (backfillHours > 0)
         {
-            var from = DateTime.UtcNow.AddHours(-backfillHours);
-            query += $"&FromDateTime={Uri.EscapeDataString(from.ToString("yyyy-MM-ddTHH:mm:ssZ"))}";
+            var to = DateTime.UtcNow;
+            var from = to.AddHours(-backfillHours);
+            query += $"&FromDateTime={Uri.EscapeDataString(from.ToString("yyyy-MM-ddTHH:mm:ssZ"))}"
+                + $"&ToDateTime={Uri.EscapeDataString(to.ToString("yyyy-MM-ddTHH:mm:ssZ"))}";
         }
         // else: no cursor and no backfill -> the endpoint defaults to today, which is what we want.
 
