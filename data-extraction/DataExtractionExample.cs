@@ -16,6 +16,7 @@ public static class DataExtractionExample
         ("Checklists",                "v1/checklist-registrations"),
         ("Alerts (incidents)",        "v1/incident-registrations"),
         ("Project transactions",      "v1/time-registrations"),
+        ("Crew-list passages",         "v1/crew-list-registrations"),
         ("Machine registrations",     "v1/machine-registrations"),
         ("Absences",                  "v1/absence-registrations"),
         ("Payroll lines",             "v1/payroll-lines"),
