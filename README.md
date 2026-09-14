@@ -23,6 +23,7 @@ Example integrations for the **Ditio Core API** — one folder per integration k
 - [`employees-v5`](employees-v5/README.md) — employees (v5, **recommended**)
 - [`certificates`](certificates/README.md) — user certificates
 - [`documents`](documents/README.md) — documents on projects & work orders
+- [`absences`](absences/README.md) — push absences granted in your payroll/HR system, in one call
 
 **Get data out of Ditio** (read / sync)
 
