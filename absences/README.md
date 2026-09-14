@@ -4,6 +4,9 @@ Push absences that have already been granted in your payroll or HR system into D
 
 `api/integration/absences` · scope `ditioapiv3`. Set `$BASE_URL` / `$TOKEN` first — see [`../authentication`](../authentication). Runnable C# example: [`AbsencesExample.cs`](AbsencesExample.cs).
 
+**There is no `PUT` or `PATCH`, and none is missing.** `POST` is an upsert — push the same `externalId` again and it updates in place, returning `200` instead of `201`, so a `PUT` would be a second way to spell one operation. `PATCH` is not offered because you always hold the whole absence: partial update earns its place when a client has only a fragment, and a payroll feed has the complete record every time. (The [Employees API](../employees-v5) does have true `PATCH` — that is why you might expect one here.)
+
+
 You send the identifiers you already hold — an employee number, a payroll code, a project number, a date range. Ditio resolves its own internal ids, expands the period into days, and runs the same validation an absence created in the app goes through. **You never look up a Ditio id.**
 
 > **Auth:** every request needs a Bearer token with the `ditioapiv3` scope. Your API client must have **Administrator** access. A token with the wrong scope returns **401**, not 403 — the scope is validated as the token's audience.
