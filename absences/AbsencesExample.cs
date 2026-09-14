@@ -2,7 +2,7 @@ namespace Ditio.Samples.Examples;
 
 /// <summary>
 /// Push an absence that has already been granted in your payroll or HR system into Ditio, in one call,
-/// via api/v5/integration/absences. Then read it back and cancel it.
+/// via api/integration/absences. Then read it back and cancel it.
 /// <para>
 /// The point of this endpoint is that you send the identifiers you already hold — an employee number, a
 /// payroll code, a project number — and Ditio resolves its own ids, expands the period into days, and
@@ -25,7 +25,7 @@ public static class AbsencesExample
         const string externalId = "SAMPLE-ABS-001";
 
         // 1. Create. Everything here is a business identifier you already have.
-        var created = await api.PostAsync("api/v5/integration/absences", new
+        var created = await api.PostAsync("api/integration/absences", new
         {
             externalId,
             employeeNumber = "1042",
@@ -59,7 +59,7 @@ public static class AbsencesExample
 
         // 2. Push the same externalId again — this UPDATES, it does not duplicate. Here the period is
         //    corrected to end a day earlier, and one day is adjusted rather than re-listed in full.
-        await api.PostAsync("api/v5/integration/absences", new
+        await api.PostAsync("api/integration/absences", new
         {
             externalId,
             employeeNumber = "1042",
@@ -88,12 +88,12 @@ public static class AbsencesExample
         });
 
         // 3. Read it back by your own id. No Ditio id needed, ever.
-        await api.GetAsync($"api/v5/integration/absences/{externalId}");
+        await api.GetAsync($"api/integration/absences/{externalId}");
 
         // 4. Cancel it. Only absences created through this endpoint are reachable — an absence a person
         //    registered in the app carries no externalId, so it cannot be found or deleted here. That is
         //    a property of the key rather than a permission check.
-        await api.DeleteAsync($"api/v5/integration/absences/{externalId}");
+        await api.DeleteAsync($"api/integration/absences/{externalId}");
 
         // A payroll code is a ROLLUP: Ditio models finer absence types than payroll pays on, so one code
         // can cover several types ("blood donation", "dentist" and "funeral" may all export as one

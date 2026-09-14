@@ -2,7 +2,7 @@
 
 Push absences that have already been granted in your payroll or HR system into Ditio, **in one call**.
 
-`api/v5/integration/absences` · scope `ditioapiv3`. Set `$BASE_URL` / `$TOKEN` first — see [`../authentication`](../authentication). Runnable C# example: [`AbsencesExample.cs`](AbsencesExample.cs).
+`api/integration/absences` · scope `ditioapiv3`. Set `$BASE_URL` / `$TOKEN` first — see [`../authentication`](../authentication). Runnable C# example: [`AbsencesExample.cs`](AbsencesExample.cs).
 
 You send the identifiers you already hold — an employee number, a payroll code, a project number, a date range. Ditio resolves its own internal ids, expands the period into days, and runs the same validation an absence created in the app goes through. **You never look up a Ditio id.**
 
@@ -20,7 +20,7 @@ Absence types need no setup: `absenceTypeCode` matches the payroll code they alr
 ## Create or update
 
 ```bash
-curl -X POST "$BASE_URL/api/v5/integration/absences" \
+curl -X POST "$BASE_URL/api/integration/absences" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -83,14 +83,24 @@ A day is `{ "date", "qty" }` in both directions — the same shape you send come
 ## Read back and cancel
 
 ```bash
-curl "$BASE_URL/api/v5/integration/absences/884213/1/7" -H "Authorization: Bearer $TOKEN"
+curl "$BASE_URL/api/integration/absences/884213/1/7" -H "Authorization: Bearer $TOKEN"
 
-curl -X DELETE "$BASE_URL/api/v5/integration/absences/884213/1/7" -H "Authorization: Bearer $TOKEN"
+curl -X DELETE "$BASE_URL/api/integration/absences/884213/1/7" -H "Authorization: Bearer $TOKEN"
 ```
 
 `DELETE` returns `204 No Content`, or `404` if no absence is held under that id.
 
 Only absences created through this endpoint are reachable. One a person registered in the app carries no `externalId`, so it cannot be found, changed or deleted here — that falls out of the key rather than a permission check.
+
+## Days payroll has settled are frozen
+
+A day approved for payroll or locked has been paid on, so it must come back from your push with the same date and the same hours or the push is refused. **Everything else stays editable** — the comment, the project, hours on days payroll has not reached, extending the period.
+
+Cancelling is different: `DELETE` removes every day, so an absence with any settled day cannot be cancelled at all.
+
+Stricter than what a person can do in Ditio, on purpose: an administrator overriding a settled day can see what they are overriding, while a feed re-pushes on a schedule and would repeat the change every run.
+
+Handle the correction in payroll, or have the period reopened in Ditio and re-push — your `externalId` means the retry updates rather than duplicates.
 
 ## Approval
 
