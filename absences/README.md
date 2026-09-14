@@ -37,7 +37,7 @@ curl -X POST "$BASE_URL/api/v5/integration/absences" \
 
 `201 Created` on the first push, `200 OK` when an existing absence was updated.
 
-The response echoes back names as well as ids — `userName`, `absenceTypeName`, `projectName`, `projectMatchedBy` — so you can confirm the absence landed on the person and project you meant without a second lookup.
+The response echoes back names as well as ids — `userName`, `absenceTypeName`, `projectName` — so you can confirm the absence landed on the person and project you meant without a second lookup.
 
 ## `externalId` is the whole contract
 
@@ -59,7 +59,7 @@ Sending both `absenceTypeCode` and `absenceTypeId` is fine; the id wins.
 
 ## Projects
 
-Send one `projectNumber` — whatever number you use. Which of Ditio's fields it corresponds to (project number, external project number, external dimension) is a Ditio-side setup detail you have no way of knowing, so we match against all of them and report which one hit in `projectMatchedBy`.
+Send one `projectNumber` — whatever number you use. Which of Ditio's fields it corresponds to (project number, external project number, external dimension) is a Ditio-side setup detail you have no way of knowing, so we match against all of them at once. If it identifies more than one project the request is refused rather than resolved, and the error says which projects and which of those numbers were involved.
 
 In a parent / project-company structure the same number is commonly reused across project companies. If it matches in more than one, the request is rejected naming the companies — send `projectCompanyId` to say which you mean.
 
@@ -71,8 +71,10 @@ The period defines the absence: `startDate`..`endDate` is expanded to **work day
 |-------|--------|
 | A date the period already books | Sets that day's hours |
 | A date the period skipped — a weekend inside the range | Adds that day |
-| `"hours": 0` | Removes that day (the person worked) |
+| `"qty": 0` | Removes that day (the person worked) |
 | A date outside `startDate`..`endDate` | Ignored |
+
+A day is `{ "date", "qty" }` in both directions — the same shape you send comes back in `days`.
 
 > **`days` does not replace the period.** Listing one day adjusts one day; it does not narrow the absence to that day. If the absence really is a single day, say so with `startDate` and `endDate`.
 

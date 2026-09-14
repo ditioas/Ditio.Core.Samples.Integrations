@@ -40,7 +40,8 @@ public static class AbsencesExample
             endDate = "2026-09-18",
 
             // Your project number, whatever form it takes. Ditio matches it against every project key it
-            // holds and tells you which one matched, in projectMatchedBy.
+            // holds. If it identifies more than one project the request is refused rather than resolved,
+            // and the error names the projects and which of those numbers were involved.
             projectNumber = "SAMPLE-P-001",
 
             hoursPerDay = 7.5,
@@ -50,7 +51,7 @@ public static class AbsencesExample
         Console.WriteLine($"Absence id: {created?.absenceRegistrationId}");
         Console.WriteLine($"Employee:   {created?.userName} ({created?.employeeNumber})");
         Console.WriteLine($"Type:       {created?.absenceTypeName}");
-        Console.WriteLine($"Project:    {created?.projectName} — matched by {created?.projectMatchedBy}");
+        Console.WriteLine($"Project:    {created?.projectName} ({created?.projectNumber})");
         Console.WriteLine($"Days:       {created?.daysQty}");
 
         // ALWAYS check daysQty against what you expected. The period is expanded to WORK days, so a
@@ -69,13 +70,16 @@ public static class AbsencesExample
             hoursPerDay = 7.5,
 
             // days ADJUSTS the period; it does not replace it. Only list what differs:
-            //   hours > 0  sets that day's hours (and adds a weekend day inside the period)
-            //   hours = 0  removes that day — the person worked
+            //   qty > 0   sets that day's hours (and adds a weekend day inside the period)
+            //   qty = 0   removes that day — the person worked
             //   a date outside startDate..endDate is ignored
             // So this books the 14th, 15th and 17th at 7.5, and the 16th at 4.
+            //
+            // A day is { date, qty } in both directions — the same shape comes back in the response's
+            // days array, so there is nothing to translate.
             days = new[]
             {
-                new { date = "2026-09-16", hours = 4.0 },
+                new { date = "2026-09-16", qty = 4.0 },
             },
 
             // Note what is NOT here: approved. On a later push the flag is ignored in both directions —
