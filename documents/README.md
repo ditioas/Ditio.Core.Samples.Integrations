@@ -263,6 +263,16 @@ Send one or more files as `multipart/form-data`. Query parameters (both optional
 | `section` | Groups the documents onto a named page under the project's document folder (e.g. `Drawings`). Re-use the same value to add more documents to that page. Omit it → a default **"Documents"** page. |
 | `replaceExistingFilesWithSameName` | When `true`, documents already on the page with the same filename are replaced (use on re-sync to avoid duplicates). |
 
+**Upload restrictions:** keep the complete multipart request, including its boundaries and fields, below
+30,000,000 bytes. Larger requests return `413` before file validation. Send larger batches as separate requests.
+SVG files have a separate 5 MiB limit and must be well-formed without active script content.
+
+HTML/web documents, scripts and executable extensions are refused with `400`, including `.html`, `.htm`,
+`.mht`, `.mhtml`, `.js`, `.exe`, `.ps1` and `.svgz`. Trailing dots and spaces are removed before checking
+the extension. A recognized non-image payload with an image filename is also refused; renaming HTML to
+`.jpg` does not make it an accepted image. Validation errors use the API's translated business-error
+response. Correct the input before retrying a `400` or `413`.
+
 ```bash
 curl -X POST "$BASE_URL/api/v4/integration/projects/65f1a2b3c4d5e6f7a8b9c0d1/documents?section=Drawings&replaceExistingFilesWithSameName=true" \
   -H "Authorization: Bearer $TOKEN" \
@@ -359,7 +369,8 @@ Returns `204 No Content`.
 - **Company-scoped:** you only see and act on projects/work orders owned by your company (or its company structure).
 - **Visibility:** documents are shown to active **employees assigned to the project** (the page is scoped to the project). They appear in the mobile app's Info Center, grouped under a per-project folder.
 - **Grouping is by `section`.** The durable handle is `(project, section)` — re-using it adds to the same page. There is no separate version concept; `replaceExistingFilesWithSameName` matches by filename.
-- **Any file type** is accepted (PDF, Word, images, …).
+- **File types and sizes:** PDF, Office documents and images remain supported, subject to the upload restrictions above.
+- **Shared file links:** a returned `/api/file/{id}` link selects response headers from the stored bytes. Recognized raster images, PDF and supported video formats render inline; other formats download as attachments. Do not infer inline rendering from the filename. The integration document-download endpoints continue to stream an attachment.
 - **Dates** are ISO 8601 (`2026-06-05T08:10:25Z`); **IDs** are strings (MongoDB ObjectIds).
 
 ---
