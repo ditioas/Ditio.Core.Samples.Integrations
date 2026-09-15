@@ -23,6 +23,7 @@ TOKEN=$(curl -s -X POST $IDENTITY/connect/token \
 | Checklists | `GET $REPORTING_URL/v1/checklist-registrations` |
 | Alerts (incidents) | `GET $REPORTING_URL/v1/incident-registrations` |
 | Project transactions (time) | `GET $REPORTING_URL/v1/time-registrations` |
+| Crew-list passages (including open check-ins) | `GET $REPORTING_URL/v1/crew-list-registrations` |
 | Machine registrations | `GET $REPORTING_URL/v1/machine-registrations` |
 | Absences | `GET $REPORTING_URL/v1/absence-registrations` |
 | Payroll lines | `GET $REPORTING_URL/v1/payroll-lines` (and `/v1/payroll-lines-extended`) |
