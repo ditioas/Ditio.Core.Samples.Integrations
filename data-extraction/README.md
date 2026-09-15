@@ -47,6 +47,20 @@ curl "$REPORTING_URL/v1/project?continuationToken=THE_TOKEN" -H "Authorization: 
 
 Most endpoints accept date-window filters (`modifiedSince` / `modifiedBefore`, `fromDateTime` / `toDateTime`) for incremental sync. See Swagger for each endpoint's filter.
 
+## Work order on checklist registrations
+
+Each checklist on `v1/checklist-registrations` carries the work order it was registered against:
+
+| Field | Meaning |
+|-------|---------|
+| `activityId` | Ditio id of the work order. |
+| `activityNumber` | The work order's **production code** — its external id, labelled "Arbeidsordrenummer" by default and "Produksjonskode" or "WBS" for some companies. Falls back to the work order's chapter number when it has no external id. `null` when the checklist has no work order. |
+| `activityName` | The work order's description. |
+
+`v1/images` exposes the same fields on checklist-sourced rows.
+
+> **Fixed September 2026.** `activityNumber` previously returned the work order's chapter number, or nothing at all, instead of the production code. If you built a mapping against the old values, re-sync: the endpoints map on read, so an ordinary `modifiedSince` pull returns the corrected value for historical checklists too — no backfill request needed.
+
 ## Generated PDFs (`pdfUrl`)
 
 Ditio generates PDFs for checklists, alerts (incidents) and absences. Each record on these endpoints carries a `pdfUrl` — an **absolute** link to the rendered PDF:
