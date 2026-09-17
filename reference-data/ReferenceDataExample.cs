@@ -21,7 +21,8 @@ public static class ReferenceDataExample
 
         // Project external references — the lists of values Ditio validates project and work
         // order writes against. Read these BEFORE writing externalProjectNumber on a project:
-        // if the company has values configured, anything not in the list is rejected with 400.
+        // if the company has this validation enabled and values configured, anything not in the
+        // list is rejected with 400.
         await api.GetAsync("api/project-external-reference/type/ExternalProjectNumber");
 
         // Sub project numbers are scoped per project, and the path segment is the project's
