@@ -38,7 +38,7 @@ Delprosjektnummer <value> er ikke en gyldig. Velg fra listen
 
 The valid set comes from the **project's** `externalProjectNumber` (the value on the project record — see [`../projects`](../projects)), not from the `externalProjectNumber` you send on the work order.
 
-> **This endpoint has no `externalSubProjectNumber` field yet**, so there is no way to satisfy that validation through the API. If a project you integrate with has sub project numbers configured, *every* work-order create and update on it is rejected whatever you send. Contact Ditio — those work orders have to be handled in Ditio until the field is available. You cannot tell from this API whether a project is affected.
+> **This endpoint has no `externalSubProjectNumber` field yet**, so there is no way to supply one. On a project that has sub project numbers configured, *every create* is rejected whatever you send. Updates are different: an existing work order keeps the sub project number it already carries, so an update succeeds when that stored value is valid and fails when it is missing or no longer in the list — you can keep syncing work orders that already have a valid value, you just cannot create new ones. Contact Ditio; new work orders have to be created there until the field is available. You cannot tell from this API whether a project is affected.
 
 ## Look up
 

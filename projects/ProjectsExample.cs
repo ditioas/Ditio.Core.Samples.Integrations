@@ -14,11 +14,11 @@ public static class ProjectsExample
             projectNumber = "SAMPLE-P-001",
             name = "Sample project",
             active = true,
-            // Free text for most companies. Where a company has the validation enabled AND has
-            // values configured, this must match one of them exactly and becomes required --
-            // anything else fails with 400 "Extern prosjektnummer ... er ikke en gyldig. Velg
-            // fra listen". See README.
-            externalProjectNumber = "SAMPLE-EXT-P-001",
+            // externalProjectNumber is deliberately NOT sent here. It is free text for most
+            // companies, but where a company has the validation enabled AND values configured
+            // it must match one of them exactly -- so a placeholder would make this very sample
+            // fail with 400 "Extern prosjektnummer ... er ikke en gyldig. Velg fra listen"
+            // for exactly the companies the README section is about. See README.
         });
         string? projectId = created?.id;
 
