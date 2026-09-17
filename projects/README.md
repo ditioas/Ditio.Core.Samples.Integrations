@@ -18,7 +18,7 @@ curl -X POST $BASE_URL/api/v4/integration/projects \
 
 For some companies it is validated instead against a **configured list of valid external project numbers**. That needs two things to be true — the company has the validation enabled *and* has values configured — so a list alone does not mean writes are checked. Where it does apply the value must match a configured one exactly, the field becomes **required**, and anything else fails with `400` and `Extern prosjektnummer <value> er ikke en gyldig. Velg fra listen`.
 
-The list is not currently exposed through the documented integration API. Ask your Ditio contact which values are configured, or whether the company uses a list at all. The value you set here also determines which sub project numbers a work order in this project must use — see [`../work-orders`](../work-orders).
+You can read and manage that list yourself — see [`../reference-data`](../reference-data/README.md) and the [Project External References](https://docs.ditio.app/api-reference/reference-data/external-references/) reference. List the `ExternalProjectNumber` type to see what is accepted, and add the value if it is missing. The value you set here also determines which sub project numbers a work order in this project must use — see [`../work-orders`](../work-orders).
 
 ## Look up
 
