@@ -40,7 +40,7 @@ curl -X PUT $BASE_URL/api/project-external-reference/disable/{id} -H "Authorizat
 
 `projNumber` means different things per type: for `ExternalSubProjectNumber` it is the project's **external** project number, for `ProcessCode` it is the Ditio `projectNumber`. Deleting a value is rejected with `403` while any project or work order still uses it (for `ExternalProjectNumber`, `ExternalSubProjectNumber` and `ProcessCode`).
 
-Read these before writing `externalProjectNumber` on a project ([`../projects`](../projects/README.md)): where a company has values configured, anything outside the list is rejected with `400`. Full reference: [Project External References](https://docs.ditio.app/api-reference/reference-data/external-references/).
+Read these before writing `externalProjectNumber` on a project ([`../projects`](../projects/README.md)): where a company has this validation enabled *and* values configured, anything outside the list is rejected with `400`. A populated list alone does not mean writes are checked. Full reference: [Project External References](https://docs.ditio.app/api-reference/reference-data/external-references/).
 
 ## Payroll & absence types
 

@@ -32,8 +32,8 @@ public static class WorkOrdersExample
             active = true,
             // A reference field linking the work order to your system. Free text.
             //
-            // Note it does NOT drive sub project number validation: where a project has sub
-            // project numbers configured, the valid set comes from the PROJECT's
+            // Note it does NOT drive sub project number validation: where that validation is
+            // enabled for the company and the project has values configured, the set comes from the PROJECT's
             // externalProjectNumber, and this endpoint has no field to send one. So every
             // *create* on such a project fails with "Delprosjektnummer ... er ikke en gyldig.
             // Velg fra listen"; updates keep the stored value and succeed while it is still
