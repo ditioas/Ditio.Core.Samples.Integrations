@@ -30,8 +30,13 @@ public static class ReferenceDataExample
         await api.GetAsync("api/project-external-reference/type/ExternalSubProjectNumber/project/40001");
 
         // Add a value when yours is missing. projNumber is required for ExternalSubProjectNumber
-        // and ProcessCode; omit it for the other types. Prefer disable/{id} over delete when a
-        // code goes out of use -- disabled values stay readable so historical data still resolves.
+        // and ProcessCode; omit it for the other types.
+        //
+        // Note projNumber means different things per type: for ExternalSubProjectNumber it is the
+        // project's EXTERNAL project number, for ProcessCode it is the Ditio projectNumber.
+        //
+        // disable/{id} only hides a value from the pickers in Ditio's own UI -- the API still
+        // accepts it on writes, so it is not a way to stop an integration using a retired code.
         await api.PostAsync("api/project-external-reference", new
         {
             externalRefType = "ExternalProjectNumber",

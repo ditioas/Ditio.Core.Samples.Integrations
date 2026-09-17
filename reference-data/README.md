@@ -33,9 +33,12 @@ curl -X POST $BASE_URL/api/project-external-reference \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{ "externalRefType": "ExternalProjectNumber", "externalRefValue": "40001", "name": "Example project" }'
 
-# Retire a value without breaking history
+# Hide a value from the pickers in Ditio's UI.
+# This does NOT stop the API accepting it -- validation ignores `disabled`.
 curl -X PUT $BASE_URL/api/project-external-reference/disable/{id} -H "Authorization: Bearer $TOKEN"
 ```
+
+`projNumber` means different things per type: for `ExternalSubProjectNumber` it is the project's **external** project number, for `ProcessCode` it is the Ditio `projectNumber`. Deleting a value is rejected with `403` while any project or work order still uses it (for `ExternalProjectNumber`, `ExternalSubProjectNumber` and `ProcessCode`).
 
 Read these before writing `externalProjectNumber` on a project ([`../projects`](../projects/README.md)): where a company has values configured, anything outside the list is rejected with `400`. Full reference: [Project External References](https://docs.ditio.app/api-reference/reference-data/external-references/).
 
