@@ -34,9 +34,10 @@ public static class WorkOrdersExample
             //
             // Note it does NOT drive sub project number validation: where a project has sub
             // project numbers configured, the valid set comes from the PROJECT's
-            // externalProjectNumber, and this endpoint has no field to send one -- every write
-            // on such a project fails with "Delprosjektnummer ... er ikke en gyldig. Velg fra
-            // listen" until that field is added. Contact Ditio if you hit it. See README.
+            // externalProjectNumber, and this endpoint has no field to send one. So every
+            // *create* on such a project fails with "Delprosjektnummer ... er ikke en gyldig.
+            // Velg fra listen"; updates keep the stored value and succeed while it is still
+            // valid. Contact Ditio if you hit it. See README.
             externalProjectNumber = "SAMPLE-EXT-P-001",
             // Provided explicitly -> wins over the template:
             safeJobAnalysisApprovalRequired = true,
