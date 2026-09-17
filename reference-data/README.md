@@ -16,6 +16,32 @@ curl $BASE_URL/api/MachineType -H "Authorization: Bearer $TOKEN"
 curl $BASE_URL/api/ProjNotificationTypeSetup -H "Authorization: Bearer $TOKEN"
 ```
 
+## Project external references
+
+The lists of values Ditio validates project and work order writes against — external project numbers, sub project numbers, process codes, WBS codes and `ExternalDim02`. Unlike the rest of this page these support writes as well as reads.
+
+```bash
+# Valid external project numbers for the company
+curl $BASE_URL/api/project-external-reference/type/ExternalProjectNumber -H "Authorization: Bearer $TOKEN"
+
+# Valid sub project numbers for one project.
+# The path segment is the project's externalProjectNumber, NOT its Ditio projectNumber.
+curl $BASE_URL/api/project-external-reference/type/ExternalSubProjectNumber/project/40001 -H "Authorization: Bearer $TOKEN"
+
+# Add a value. projNumber is required for ExternalSubProjectNumber and ProcessCode.
+curl -X POST $BASE_URL/api/project-external-reference \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{ "externalRefType": "ExternalProjectNumber", "externalRefValue": "40001", "name": "Example project" }'
+
+# Hide a value from the pickers in Ditio's UI.
+# This does NOT stop the API accepting it -- validation ignores `disabled`.
+curl -X PUT $BASE_URL/api/project-external-reference/disable/{id} -H "Authorization: Bearer $TOKEN"
+```
+
+`projNumber` means different things per type: for `ExternalSubProjectNumber` it is the project's **external** project number, for `ProcessCode` it is the Ditio `projectNumber`. Deleting a value is rejected with `403` while any project or work order still uses it (for `ExternalProjectNumber`, `ExternalSubProjectNumber` and `ProcessCode`).
+
+Read these before writing `externalProjectNumber` on a project ([`../projects`](../projects/README.md)): where a company has this validation enabled *and* values configured, anything outside the list is rejected with `400`. A populated list alone does not mean writes are checked. Full reference: [Project External References](https://docs.ditio.app/api-reference/reference-data/external-references/).
+
 ## Payroll & absence types
 
 Payroll types and absence types are configured in Ditio and referenced by **id** in the payroll export filters (`payrollTypeIds` / `absenceTypeIds` — see [`../data-extraction`](../data-extraction/README.md)). See Swagger for the lookup endpoints.

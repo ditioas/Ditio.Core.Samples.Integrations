@@ -30,6 +30,15 @@ public static class WorkOrdersExample
             externalId = "SAMPLE-WO-100",
             name = "Foundation work",
             active = true,
+            // A reference field linking the work order to your system. Free text.
+            //
+            // Note it does NOT drive sub project number validation: where that validation is
+            // enabled for the company and the project has values configured, the set comes from the PROJECT's
+            // externalProjectNumber, and this endpoint has no field to send one. So every
+            // *create* on such a project fails with "Delprosjektnummer ... er ikke en gyldig.
+            // Velg fra listen"; updates keep the stored value and succeed while it is still
+            // valid. Contact Ditio if you hit it. See README.
+            externalProjectNumber = "SAMPLE-EXT-P-001",
             // Provided explicitly -> wins over the template:
             safeJobAnalysisApprovalRequired = true,
             costPrice = 1200.0,

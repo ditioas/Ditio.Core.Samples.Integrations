@@ -26,6 +26,20 @@ curl -X POST $BASE_URL/api/v4/integration/tasks \
   -d '{ "companyId": "YOUR_COMPANY_ID", "projectId": "PROJECT_ID", "externalId": "WO-101", "name": "Earthworks", "active": true, "safeJobAnalysisApprovalRequired": true, "costPrice": 1200.0 }'
 ```
 
+## External project number & sub project numbers
+
+`externalProjectNumber` on a work order is a free-text reference field linking it to your system.
+
+Separately, some projects have a **configured list of valid sub project numbers**. Where that applies, Ditio requires every work order in the project to carry one of those values and rejects the write otherwise with `400`:
+
+```
+Delprosjektnummer <value> er ikke en gyldig. Velg fra listen
+```
+
+The valid set comes from the **project's** `externalProjectNumber` (the value on the project record — see [`../projects`](../projects)), not from the `externalProjectNumber` you send on the work order. List it via [`../reference-data`](../reference-data/README.md).
+
+> **This endpoint has no `externalSubProjectNumber` field yet**, so there is no way to supply one. On a project where that validation is enabled and sub project numbers are configured, *every create* is rejected whatever you send. Updates are different: an existing work order keeps the sub project number it already carries, so an update succeeds when that stored value is valid and fails when it is missing or no longer in the list — you can keep syncing work orders that already have a valid value, you just cannot create new ones. You can check whether a project is affected, and manage the values, via [`../reference-data`](../reference-data/README.md) — list `ExternalSubProjectNumber` for the project's external project number; a non-empty list means the project *may* be affected — whether the check is enforced also depends on the company's configuration, so confirm with Ditio. What you cannot yet do is attach one of those values to a work order through this endpoint, so new work orders on such a project have to be created in Ditio.
+
 ## Look up
 
 ```bash
