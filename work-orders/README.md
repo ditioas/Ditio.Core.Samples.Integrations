@@ -26,25 +26,19 @@ curl -X POST $BASE_URL/api/v4/integration/tasks \
   -d '{ "companyId": "YOUR_COMPANY_ID", "projectId": "PROJECT_ID", "externalId": "WO-101", "name": "Earthworks", "active": true, "safeJobAnalysisApprovalRequired": true, "costPrice": 1200.0 }'
 ```
 
-## External project / sub project numbers
+## External project number & sub project numbers
 
-`externalProjectNumber` and `externalSubProjectNumber` link the work order to your system. For most companies they are free text and can be omitted.
+`externalProjectNumber` on a work order is a free-text reference field linking it to your system.
 
-Some companies have **configured lists of valid values** held in Ditio. Where a list exists, the field stops being free text:
+Separately, some projects have a **configured list of valid sub project numbers**. Where that applies, Ditio requires every work order in the project to carry one of those values and rejects the write otherwise with `400`:
 
-- the value must match a configured value exactly;
-- it becomes **required** — omitting it is rejected too;
-- anything else fails with `400` and `Delprosjektnummer <value> er ikke en gyldig. Velg fra listen`.
-
-Sub project numbers are scoped **per project**, not per company: the valid set is the one configured for this work order's `externalProjectNumber`, so changing that changes which sub project numbers are accepted.
-
-```bash
-curl -X POST $BASE_URL/api/v4/integration/tasks \
-  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -d '{ "companyId": "YOUR_COMPANY_ID", "projectId": "PROJECT_ID", "externalId": "WO-102", "name": "Rep/Ved", "active": true, "externalProjectNumber": "259086", "externalSubProjectNumber": "259086-01" }'
+```
+Delprosjektnummer <value> er ikke en gyldig. Velg fra listen
 ```
 
-The lists are maintained inside Ditio — there is no public endpoint for them. If you get the error above, ask your Ditio contact which values are configured for the project, or whether the company uses lists at all.
+The valid set comes from the **project's** `externalProjectNumber` (the value on the project record — see [`../projects`](../projects)), not from the `externalProjectNumber` you send on the work order.
+
+> **This endpoint has no `externalSubProjectNumber` field yet**, so there is no way to satisfy that validation through the API. If a project you integrate with has sub project numbers configured, *every* work-order create and update on it is rejected whatever you send. Contact Ditio — those work orders have to be handled in Ditio until the field is available. You cannot tell from this API whether a project is affected.
 
 ## Look up
 

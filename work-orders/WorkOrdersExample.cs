@@ -30,14 +30,14 @@ public static class WorkOrdersExample
             externalId = "SAMPLE-WO-100",
             name = "Foundation work",
             active = true,
-            // External references. For most companies these are free text and can be omitted.
-            // Some companies have configured lists of valid values, and then both are validated:
-            // the value must match a configured one exactly, and it becomes required. The valid
-            // externalSubProjectNumber values depend on externalProjectNumber, not on the company.
-            // A value outside the list fails with 400 and "... er ikke en gyldig. Velg fra listen".
-            // Ask your Ditio contact which values are configured, if any.
-            externalProjectNumber = "259086",
-            externalSubProjectNumber = "259086-01",
+            // A reference field linking the work order to your system. Free text.
+            //
+            // Note it does NOT drive sub project number validation: where a project has sub
+            // project numbers configured, the valid set comes from the PROJECT's
+            // externalProjectNumber, and this endpoint has no field to send one -- every write
+            // on such a project fails with "Delprosjektnummer ... er ikke en gyldig. Velg fra
+            // listen" until that field is added. Contact Ditio if you hit it. See README.
+            externalProjectNumber = "SAMPLE-EXT-P-001",
             // Provided explicitly -> wins over the template:
             safeJobAnalysisApprovalRequired = true,
             costPrice = 1200.0,
