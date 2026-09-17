@@ -12,6 +12,14 @@ curl -X POST $BASE_URL/api/v4/integration/projects \
 
 `companyId`, `projectNumber` are required. The call is idempotent on `projectNumber` (returns the existing project if it already exists).
 
+## External project number
+
+`externalProjectNumber` links the project to your system. Free text for most companies.
+
+Where a company has a **configured list of valid external project numbers**, the field is validated: the value must match a configured one exactly, it becomes **required**, and anything else fails with `400` and `Extern prosjektnummer <value> er ikke en gyldig. Velg fra listen`.
+
+The list is maintained inside Ditio — there is no public endpoint for it. Ask your Ditio contact which values are configured, or whether the company uses a list at all. The same pattern applies to work-order sub project numbers, scoped per project — see [`../work-orders`](../work-orders).
+
 ## Look up
 
 ```bash

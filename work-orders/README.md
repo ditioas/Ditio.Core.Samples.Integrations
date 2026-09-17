@@ -26,6 +26,26 @@ curl -X POST $BASE_URL/api/v4/integration/tasks \
   -d '{ "companyId": "YOUR_COMPANY_ID", "projectId": "PROJECT_ID", "externalId": "WO-101", "name": "Earthworks", "active": true, "safeJobAnalysisApprovalRequired": true, "costPrice": 1200.0 }'
 ```
 
+## External project / sub project numbers
+
+`externalProjectNumber` and `externalSubProjectNumber` link the work order to your system. For most companies they are free text and can be omitted.
+
+Some companies have **configured lists of valid values** held in Ditio. Where a list exists, the field stops being free text:
+
+- the value must match a configured value exactly;
+- it becomes **required** — omitting it is rejected too;
+- anything else fails with `400` and `Delprosjektnummer <value> er ikke en gyldig. Velg fra listen`.
+
+Sub project numbers are scoped **per project**, not per company: the valid set is the one configured for this work order's `externalProjectNumber`, so changing that changes which sub project numbers are accepted.
+
+```bash
+curl -X POST $BASE_URL/api/v4/integration/tasks \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{ "companyId": "YOUR_COMPANY_ID", "projectId": "PROJECT_ID", "externalId": "WO-102", "name": "Rep/Ved", "active": true, "externalProjectNumber": "259086", "externalSubProjectNumber": "259086-01" }'
+```
+
+The lists are maintained inside Ditio — there is no public endpoint for them. If you get the error above, ask your Ditio contact which values are configured for the project, or whether the company uses lists at all.
+
 ## Look up
 
 ```bash

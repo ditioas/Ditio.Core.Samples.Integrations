@@ -14,6 +14,10 @@ public static class ProjectsExample
             projectNumber = "SAMPLE-P-001",
             name = "Sample project",
             active = true,
+            // Free text for most companies. Where a list of valid external project numbers is
+            // configured, this must match one of them exactly and becomes required -- anything
+            // else fails with 400 "Extern prosjektnummer ... er ikke en gyldig. Velg fra listen".
+            externalProjectNumber = "259086",
         });
         string? projectId = created?.id;
 
