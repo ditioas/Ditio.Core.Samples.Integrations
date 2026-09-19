@@ -53,6 +53,7 @@ public static class WorkOrdersExample
 
         // Partial update.
         if (taskId is not null)
+            // The route identifies the work order. A body id is optional and ignored for PUT/PATCH.
             await api.PatchAsync($"api/v4/integration/tasks/{taskId}", new { name = "Foundation work (phase 2)" });
 
         // Delete (destructive) — uncomment to try:
