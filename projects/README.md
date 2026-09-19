@@ -56,6 +56,8 @@ PATCH requires a JSON object and preserves fields you omit. If the project is mi
 to the authenticated company, it returns the same `404 Not Found` response and does not create or
 change a project.
 
-> **Prefer PATCH over PUT.** `PUT /projects/{id}` *replaces the whole project* — any field you omit is wiped. Use `PATCH` for syncs unless you really mean to overwrite everything.
+> **Prefer PATCH for an update bound to the route ID.** PUT keeps the legacy upsert matching rules
+> (submitted ID or integration keys); the route ID alone does not select its target. Both map
+> provided fields. The write-scope check applies to the stored project actually selected.
 
 **C#:** [`ProjectsExample.cs`](ProjectsExample.cs). Full field reference: Swagger.
