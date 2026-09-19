@@ -2,6 +2,14 @@
 
 `api/v4/integration/projects` · scope `ditioapiv3`. Set `$BASE_URL` / `$TOKEN` first — see [`../authentication`](../authentication).
 
+Writes require an established relationship to the stored project (resolved owner/shared company,
+assigned user, or existing parent-company management checked against SQL). Existing endpoint
+permissions and read-only restrictions still apply. Knowing an ID or submitting a different
+owner/sharing list does not grant access: unrelated updates return `404 Not Found` before write
+effects. Create/upsert destination companies must be the resolved company or managed descendants;
+existing upsert targets are checked separately. PATCH remains limited to the resolved company's
+projects. Keep the intended company context on requests; do not retry a denied update as a create.
+
 ## Create
 
 ```bash
