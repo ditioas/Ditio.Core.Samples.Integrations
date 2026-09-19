@@ -61,4 +61,6 @@ A work order can't be deleted while it has time registrations; deactivate (`acti
 
 `PUT` is a full replace: omitted fields reset to their defaults (and the template is not consulted on update — template fill-in is create-only). Use `PATCH` to change only some fields without resetting the rest.
 
+For both `PUT` and `PATCH`, the path identifies the work order. The body `id` is optional and ignored; updates never rename or select another work order through the body.
+
 **C#:** [`WorkOrdersExample.cs`](WorkOrdersExample.cs).
