@@ -61,4 +61,6 @@ A work order can't be deleted while it has time registrations; deactivate (`acti
 
 `PUT` is a full replace: omitted fields reset to their defaults (and the template is not consulted on update — template fill-in is create-only). Use `PATCH` to change only some fields without resetting the rest.
 
+`PUT` and `PATCH` updates are authorized against the work order's current persisted project. If `projectId` moves the work order to another project, the caller must also have access to the destination project. An inaccessible current or destination project is returned as not found.
+
 **C#:** [`WorkOrdersExample.cs`](WorkOrdersExample.cs).
