@@ -24,7 +24,9 @@ curl "$BASE_URL/api/v4/integration/machines?includeEquipmentDetails=true"  -H "A
 
 ## Update
 
-Machine updates check the stored machine against the integration caller's existing access before applying request fields. Supplying a different `companyId` does not grant access to the target. Full replacement and ESG updates return the same generic HTTP 404 for an absent machine or a rejected write scope. Partial updates return that 404 for a rejected write scope but retain their existing lookup-error behavior for absent targets. Array updates check each item separately; earlier items can already have succeeded if a later item fails. Supported ownership transfers remain available after the stored target passes the check. Equipment updates follow their existing rules.
+Machine updates require a relationship to the stored machine before applying request fields: the effective caller's company owns it, it is already shared with that company, or the caller has the applicable administration access through the stored owner's company hierarchy. Existing write permissions must also pass; sharing alone does not grant permission to edit the machine. Supplying a different `companyId`, or knowing the ID of a machine with no transactions, does not grant access.
+
+Full replacement and ESG updates return the same generic HTTP 404 for an absent machine or a rejected write scope. Partial updates return that 404 for a rejected write scope but retain their existing lookup-error behavior for absent targets. Array updates check each item separately; earlier items can already have succeeded if a later item fails. Supported ownership transfers remain available after the stored target passes the check. Equipment updates follow their existing rules.
 
 ```bash
 # Partial update (e.g. hour meter / service)
