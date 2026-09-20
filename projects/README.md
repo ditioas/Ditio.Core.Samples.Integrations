@@ -2,6 +2,14 @@
 
 `api/v4/integration/projects` · scope `ditioapiv3`. Set `$BASE_URL` / `$TOKEN` first — see [`../authentication`](../authentication).
 
+Writes require an established relationship to the stored project (resolved owner/shared company,
+assigned user, or existing parent-company management checked against SQL). Existing endpoint
+permissions and read-only restrictions still apply. Knowing an ID or submitting a different
+owner/sharing list does not grant access: unrelated updates return `404 Not Found` before write
+effects. Create/upsert destination companies must be the resolved company or managed descendants;
+existing upsert targets are checked separately. PATCH remains limited to the resolved company's
+projects. Keep the intended company context on requests; do not retry a denied update as a create.
+
 ## Create
 
 ```bash
@@ -48,6 +56,8 @@ PATCH requires a JSON object and preserves fields you omit. If the project is mi
 to the authenticated company, it returns the same `404 Not Found` response and does not create or
 change a project.
 
-> **Prefer PATCH over PUT.** `PUT /projects/{id}` *replaces the whole project* — any field you omit is wiped. Use `PATCH` for syncs unless you really mean to overwrite everything.
+> **Prefer PATCH for an update bound to the route ID.** PUT keeps the legacy upsert matching rules
+> (submitted ID or integration keys); the route ID alone does not select its target. Both map
+> provided fields. The write-scope check applies to the stored project actually selected.
 
 **C#:** [`ProjectsExample.cs`](ProjectsExample.cs). Full field reference: Swagger.
