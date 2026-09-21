@@ -12,6 +12,10 @@ curl -X POST $BASE_URL/api/v4/integration/tasks \
 
 `companyId`, `projectId`, `externalId` are required.
 
+The project must already exist, and creation is authorized against the persisted `projectId`. An inaccessible or missing project is returned as not found; submitted company fields do not grant project access.
+
+An unused client-supplied `id` is preserved. If that ID already exists, the API rejects the request with `400` before creating the work order.
+
 ### Optional settings & template work orders
 
 A handful of settings are **optional** — `safeJobAnalysisApprovalRequired`, `measureUnitQty`, `unitId`, `costPrice`, `price`, `fixedResourcePrice`. Omitting them means "not provided" (they are **not** forced to `false`/`0`):
