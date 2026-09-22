@@ -61,7 +61,7 @@ curl -X PATCH  $BASE_URL/api/v4/integration/tasks/{id} -H "Authorization: Bearer
 curl -X DELETE $BASE_URL/api/v4/integration/tasks/{id} -H "Authorization: Bearer $TOKEN"
 ```
 
-Deletion reloads the work order and its current persisted project before changing related data. The effective caller must be writable and have project scope through the owning company, project sharing, project membership, or a freshly checked parent-to-descendant company relationship. Missing work orders, missing or inaccessible projects, and read-only callers receive the same generic not-found error before cleanup.
+Deletion reloads the work order and its current persisted project before changing related data. The effective caller must be writable and have project scope through the owning company, project sharing, project membership, or a freshly checked parent-to-descendant company relationship. Missing work orders, missing or inaccessible projects, and read-only callers receive HTTP 404 (not found) before cleanup.
 
 The existing work-order company eligibility check also applies: the work order must belong to the selected company or its company structure. Project scope alone does not bypass this check. These checks contain deletion to an eligible project and company; they do not introduce new editor-role permissions.
 
