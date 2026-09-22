@@ -374,8 +374,8 @@ It is shown above the contents, and in the level above as a one-line summary und
 tell what a folder covers before opening it.
 
 ```
-PUT /api/v4/integration/projects/{id}/documents/description
-PUT /api/v4/integration/projects/{id}/documents/description?section=Drawings
+PATCH /api/v4/integration/projects/{id}/documents
+PATCH /api/v4/integration/projects/{id}/documents?section=Drawings
 ```
 
 Omit `section` to describe the project's **document folder**; name one to describe that **section page**.
@@ -383,7 +383,7 @@ Work-order documents live as sections under the same project folder, so pass the
 here rather than looking for a separate work-order endpoint.
 
 ```bash
-curl -X PUT "$BASE_URL/api/v4/integration/projects/65f1a2b3c4d5e6f7a8b9c0d1/documents/description?section=Drawings" \
+curl -X PATCH "$BASE_URL/api/v4/integration/projects/65f1a2b3c4d5e6f7a8b9c0d1/documents?section=Drawings" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"description": "Approved drawings only.\nSuperseded revisions are moved to Archive."}'
