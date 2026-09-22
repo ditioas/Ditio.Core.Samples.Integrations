@@ -57,6 +57,9 @@ public static class WorkOrdersExample
             await api.PatchAsync($"api/v4/integration/tasks/{taskId}", new { name = "Foundation work (phase 2)" });
 
         // Delete (destructive) — uncomment to try:
+        // Requires writable access to the freshly loaded task's persisted project and existing
+        // task-company eligibility. Missing/inaccessible projects or read-only callers return not found.
+        // Nonrecursive: children, time registrations, or mass-haul use block deletion (see README).
         // if (taskId is not null) await api.DeleteAsync($"api/v4/integration/tasks/{taskId}");
     }
 }

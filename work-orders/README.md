@@ -61,7 +61,11 @@ curl -X PATCH  $BASE_URL/api/v4/integration/tasks/{id} -H "Authorization: Bearer
 curl -X DELETE $BASE_URL/api/v4/integration/tasks/{id} -H "Authorization: Bearer $TOKEN"
 ```
 
-A work order can't be deleted while it has time registrations; deactivate (`active:false`) instead.
+Deletion reloads the work order and its current persisted project before changing related data. The effective caller must be writable and have project scope through the owning company, project sharing, project membership, or a freshly checked parent-to-descendant company relationship. Missing work orders, missing or inaccessible projects, and read-only callers receive the same generic not-found error before cleanup.
+
+The existing work-order company eligibility check also applies: the work order must belong to the selected company or its company structure. Project scope alone does not bypass this check. These checks contain deletion to an eligible project and company; they do not introduce new editor-role permissions.
+
+Integration deletion is nonrecursive: a work order or chapter with children cannot be deleted. Time registrations and mass-haul use also block deletion; deactivate (`active:false`) instead when appropriate.
 
 `PUT` is a full replace: omitted fields reset to their defaults (and the template is not consulted on update — template fill-in is create-only). Use `PATCH` to change only some fields without resetting the rest.
 
