@@ -29,9 +29,9 @@ public static class MachinesExample
         if (machineId is not null)
             await api.PatchAsync($"api/v4/integration/machines/{machineId}", new { hourMeter = 3500, serviceDate = "2025-02-15T00:00:00Z" });
 
-        // Block check-in on a machine (e.g. while under service). Omitting blockCheckIn /
-        // blockCheckInMessage in PUT/PATCH leaves the stored values unchanged; JSON null is
-        // treated as omitted, so send "" to clear a stored message. Machines only.
+        // Block check-in on a machine (e.g. while under service). Machines are preserve-on-omit on
+        // both PUT and PATCH, so any field left out of the body keeps its stored value; JSON null is
+        // treated as omitted, so send "" to clear a stored string. Machines only.
         if (machineId is not null)
             await api.PatchAsync($"api/v4/integration/machines/{machineId}", new
             {

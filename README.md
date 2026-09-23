@@ -84,6 +84,11 @@ TOKEN=$(curl -s -X POST $IDENTITY/connect/token \
 
 So unless you deliberately want to replace every field, reach for **PATCH**.
 
+> **Machines are the exception.** `PUT /api/v4/integration/machines/{id}` and
+> `PUT /api/v4/integration/machines/update/array` are preserve-on-omit: a field left out of the body
+> keeps its stored value. See [`machines/README.md`](machines/README.md). Every other entity below
+> still follows the full-replace rule above.
+
 | Entity | PATCH endpoint |
 |--------|----------------|
 | Projects | `PATCH /api/v4/integration/projects/{id}` — dynamic, any subset of fields |
