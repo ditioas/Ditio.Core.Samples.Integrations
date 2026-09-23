@@ -361,6 +361,53 @@ DELETE /api/v4/integration/tasks/{id}/documents/{fileReferenceId}
 
 Returns `204 No Content`.
 
+Deleting through this endpoint removes **both** the file and its entry on the page. `DELETE /api/file/{id}`
+and `DELETE /api/filereference/{id}` also remove the entry now, but prefer the endpoint above — it is the
+documented one and it is scoped to the project you name.
+
+---
+
+## Step 6 — Describe a folder or section
+
+Set the guidance text a field worker sees on the project's document folder, or on one of its section pages.
+It is shown above the contents, and in the level above as a one-line summary under the name — so someone can
+tell what a folder covers before opening it.
+
+```
+PATCH /api/v4/integration/projects/{id}/documents
+PATCH /api/v4/integration/projects/{id}/documents?section=Drawings
+```
+
+Omit `section` to describe the project's **document folder**; name one to describe that **section page**.
+Work-order documents live as sections under the same project folder, so pass the work order's section name
+here rather than looking for a separate work-order endpoint.
+
+```bash
+curl -X PATCH "$BASE_URL/api/v4/integration/projects/65f1a2b3c4d5e6f7a8b9c0d1/documents?section=Drawings" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"description": "Approved drawings only.\nSuperseded revisions are moved to Archive."}'
+```
+
+**Response:**
+
+```json
+{
+  "externalId": "int-projdocs:65f1a2b3c4d5e6f7a8b9c0d1:drawings",
+  "title": "Drawings",
+  "description": "Approved drawings only.\nSuperseded revisions are moved to Archive."
+}
+```
+
+Notes:
+
+- **Send plain text.** Each line becomes a paragraph. Markup is shown as literal characters, not interpreted.
+- **The folder or section must already exist** — push a document to it first. A `404` means it does not.
+- **This replaces the whole text.** It is the same text a Ditio Web user can edit on that page, so a write
+  here overwrites what they typed, and theirs overwrites yours. Send the full text you want shown.
+- Send `null` or `""` to clear it.
+- **Limits:** up to 10 000 characters and a 64 KB request body; longer is rejected with `400`.
+
 ---
 
 ## Limitations & notes
@@ -371,6 +418,9 @@ Returns `204 No Content`.
 - **Grouping is by `section`.** The durable handle is `(project, section)` — re-using it adds to the same page. There is no separate version concept; `replaceExistingFilesWithSameName` matches by filename.
 - **File types and sizes:** PDF, Office documents and images remain supported, subject to the upload restrictions above.
 - **Shared file links:** a returned `/api/file/{id}` link selects response headers from the stored bytes. Recognized raster images, PDF and supported video formats render inline; other formats download as attachments. Do not infer inline rendering from the filename. The integration document-download endpoints continue to stream an attachment.
+- **An upload either attaches every document or fails.** `successful: true` means the documents really are on
+  the page; if one could not be attached the call returns an error instead, so you can simply retry — there is
+  no need to compare `infoPageFiles` against what you sent.
 - **Dates** are ISO 8601 (`2026-06-05T08:10:25Z`); **IDs** are strings (MongoDB ObjectIds).
 
 ---
