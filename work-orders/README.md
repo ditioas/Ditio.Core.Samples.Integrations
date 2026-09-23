@@ -77,6 +77,6 @@ For both `PUT` and `PATCH`, the path identifies the work order. The body `id` is
 
 `PUT` and `PATCH` updates are authorized against the work order's current persisted project. If `projectId` moves the work order to another project, the caller must also have access to the destination project. An inaccessible current or destination project is returned as not found.
 
-The parent must also belong to the resulting project. When changing `projectId`, supply a parent in that project or clear `parentActivityId` to make the work order top-level. A `PATCH` that omits `parentActivityId` retains the existing parent and is rejected with the same `404 Not Found` if that parent is missing or belongs to a different project. Rejected updates leave the work order and hierarchy unchanged.
+The parent must also belong to the resulting project. When changing `projectId`, supply a parent in that project or clear `parentActivityId` to make the work order top-level. For `PATCH`, send `"parentActivityId": ""` to clear it; omission or `null` retains the existing parent. The update is rejected with the same `404 Not Found` if that parent is missing or belongs to a different project. Rejected updates leave the work order and hierarchy unchanged.
 
 **C#:** [`WorkOrdersExample.cs`](WorkOrdersExample.cs).
