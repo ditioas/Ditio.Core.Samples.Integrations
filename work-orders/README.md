@@ -16,6 +16,14 @@ The project must already exist, and creation is authorized against the persisted
 
 An unused client-supplied `id` is preserved. If that ID already exists, the API rejects the request with `400` before creating the work order.
 
+### Hierarchical work orders
+
+Set `parentActivityId` to an existing work order in the same `projectId`, or omit it/use `null` or an empty string for a top-level work order. A missing parent or a parent in another project returns the same `404 Not Found` response before write effects, even when the caller can access both projects.
+
+```json
+{ "companyId": "YOUR_COMPANY_ID", "projectId": "PROJECT_ID", "externalId": "WO-100-1", "name": "Foundation excavation", "parentActivityId": "PARENT_IN_PROJECT_ID", "active": true }
+```
+
 ### Optional settings & template work orders
 
 A handful of settings are **optional** — `safeJobAnalysisApprovalRequired`, `measureUnitQty`, `unitId`, `costPrice`, `price`, `fixedResourcePrice`. Omitting them means "not provided" (they are **not** forced to `false`/`0`):
@@ -72,5 +80,7 @@ Integration deletion is nonrecursive: a work order or chapter with children cann
 For both `PUT` and `PATCH`, the path identifies the work order. The body `id` is optional and ignored; updates never rename or select another work order through the body.
 
 `PUT` and `PATCH` updates are authorized against the work order's current persisted project. If `projectId` moves the work order to another project, the caller must also have access to the destination project. An inaccessible current or destination project is returned as not found.
+
+The parent must also belong to the resulting project. When changing `projectId`, supply a parent in that project or clear `parentActivityId` to make the work order top-level. For `PATCH`, send `"parentActivityId": ""` to clear it; omission or `null` retains the existing parent. The update is rejected with the same `404 Not Found` if that parent is missing or belongs to a different project. Rejected updates leave the work order and hierarchy unchanged.
 
 **C#:** [`WorkOrdersExample.cs`](WorkOrdersExample.cs).
