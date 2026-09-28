@@ -26,7 +26,7 @@ TOKEN=$(curl -s -X POST $IDENTITY/connect/token \
 | Crew-list passages (including open check-ins) | `GET $REPORTING_URL/v1/crew-list-registrations` |
 | Machine registrations | `GET $REPORTING_URL/v1/machine-registrations` |
 | Absences | `GET $REPORTING_URL/v1/absence-registrations` |
-| Payroll lines | `GET $REPORTING_URL/v1/payroll-lines` (and `/v1/payroll-lines-extended`) |
+| Payroll lines | `GET $REPORTING_URL/v1/payroll-lines` (and [`/v1/payroll-lines-extended`](#payroll-lines-and-payroll-lines-extended), which adds `overtimeLines`) |
 | Items | `GET $REPORTING_URL/v1/item-registrations/web-query` |
 | Images | `GET $REPORTING_URL/v1/images` |
 | Machine checklists / incidents | `GET $REPORTING_URL/v1/machine-checklist-registrations`, `/v1/machine-incident-registrations` |
@@ -62,6 +62,30 @@ Each checklist on `v1/checklist-registrations` carries the work order it was reg
 
 > **Fixed September 2026.** `activityNumber` previously returned the work order's chapter number, or nothing at all, instead of the production code. If you built a mapping against the old values, re-sync: the endpoints map on read, so an ordinary `modifiedSince` pull returns the corrected value for historical checklists too — no backfill request needed.
 
+## Payroll lines and payroll lines (extended)
+
+`v1/payroll-lines-extended` returns the same summaries as the payroll export API's
+[`GET api/payroll-export/`](../payroll-export/README.md) — use this endpoint instead when you already
+pull everything else through the paginated Data Extraction API and want payroll data on the same
+`continuationToken` / `modifiedSince` model. `v1/payroll-lines` is the plain (non-extended) variant.
+
+Each summary carries `overtimeLines`: one entry per overtime payroll type booked on the day, instead of
+just the fixed `overtime50Qty` / `overtime100Qty` fields — a company can configure any number of
+overtime types.
+
+| Field | Type | Description |
+|-------|------|--------------|
+| `payrollTypeId` | string | Ditio payroll type ID |
+| `name` | string | Payroll type name |
+| `lineType` | int | `20`, `30`, `40` = overtime levels 1/2/3. `41` = a manually registered overtime type (any number of these). |
+| `overtimeType` | int | `0` = Overtime — deducted from ordinary hours. `1` = OvertimeAddition — paid on top, never deducted. |
+| `sorting` | number | The type's sorting in Ditio's payroll setup |
+| `qty` | number | Hours on the day, rounded to 2 decimals |
+
+Entries are ordered by `lineType`, then `sorting`, then `name`. Existing fields are unchanged — see
+[`../payroll-export/README.md`](../payroll-export/README.md#overtimelines) for the full field
+description and an example payload.
+
 ## Generated PDFs (`pdfUrl`)
 
 Ditio generates PDFs for checklists, alerts (incidents) and absences. Each record on these endpoints carries a `pdfUrl` — an **absolute** link to the rendered PDF:
@@ -87,4 +111,4 @@ curl -s "$REPORTING_URL/v1/checklist-registrations?ProjectId=$PROJECT_ID&modifie
 
 > A generic documents extractor (`v1/documents`, arbitrary non-image files) is planned but not yet available.
 
-**C#:** [`DataExtractionExample.cs`](DataExtractionExample.cs) — fetches the first page of each endpoint, demonstrates paging, and downloads checklist/alert/absence PDFs via `pdfUrl`.
+**C#:** [`DataExtractionExample.cs`](DataExtractionExample.cs) — fetches the first page of each endpoint (including `v1/payroll-lines-extended`, printing its `overtimeLines`), demonstrates paging, and downloads checklist/alert/absence PDFs via `pdfUrl`.
