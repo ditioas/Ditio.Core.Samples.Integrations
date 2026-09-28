@@ -28,6 +28,7 @@ Example integrations for the **Ditio Core API** — one folder per integration k
 **Get data out of Ditio** (read / sync)
 
 - [`data-extraction`](data-extraction/README.md) — projects, work orders, checklists, alerts, project transactions, absences, payroll, users, images … (paginated `v1/*`)
+- [`payroll-export`](payroll-export/README.md) — approved payroll data for import into accounting/payroll systems, including per-line `overtimeLines`
 
 **Send data to another system**
 
