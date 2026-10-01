@@ -147,8 +147,9 @@ def start_page(version):
             [("Slik bruker du rapporten", BOLD, None)],
             [("1. I Power BI Desktop lastes perioden fra RangeStart til RangeEnd (Transformer data > Rediger "
               f"parametere). Publisert til Power BI-tjenesten holder rapporten de siste {STORE_MONTHS} månedene og "
-              f"henter bare de siste {REFRESH_MONTHS} månedene på nytt ved hver oppdatering. Endringer i eldre "
-              "registreringer (for eksempel sene godkjenninger) kommer ikke med før rapporten publiseres på nytt. "
+              f"henter inneværende måned og de {REFRESH_MONTHS - 1} foregående på nytt ved hver oppdatering. Endringer i "
+              "registreringer med eldre dato (for eksempel sene godkjenninger) kommer ikke med før rapporten "
+              "publiseres på nytt. "
               "Prosjekter, arbeidsordrer, ressurser og brukere lastes alltid i sin helhet.", None, None)],
             [("2. Tabellen til høyre viser hvor mange rader hver tabell har og når dataene sist ble endret i Ditio. "
               "En tom tabell betyr som regel at firmaet ikke bruker den delen av Ditio, eller at perioden er feil.", None, None)],
