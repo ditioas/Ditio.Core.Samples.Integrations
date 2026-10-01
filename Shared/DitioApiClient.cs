@@ -28,6 +28,30 @@ public sealed class DitioApiClient
     public Task<dynamic?> PatchAsync(string path, object body) => SendAsync(HttpMethod.Patch, path, body);
     public Task<dynamic?> DeleteAsync(string path) => SendAsync(HttpMethod.Delete, path);
 
+    /// <summary>
+    /// GET that returns the raw response body and prints only the status line. For bulk paging,
+    /// where one page can hold thousands of records: <see cref="GetAsync"/> echoes every body to the
+    /// console and returns null on an error. This one throws on a non-success status instead, so a
+    /// sync job can never mistake a failed call for "no changes" and move its watermark past it.
+    /// </summary>
+    public async Task<string> GetRawAsync(string path, CancellationToken cancellationToken = default)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, path.TrimStart('/'));
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await _tokens.GetTokenAsync(_scope));
+
+        using var response = await _http.SendAsync(request, cancellationToken);
+        var raw = await response.Content.ReadAsStringAsync(cancellationToken);
+        Console.WriteLine($"GET {path} -> {(int)response.StatusCode} {response.StatusCode}");
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var excerpt = raw.Length <= 500 ? raw : raw[..500] + "…";
+            throw new HttpRequestException($"GET {path} failed: {(int)response.StatusCode} {response.StatusCode}. {excerpt}", null, response.StatusCode);
+        }
+
+        return raw;
+    }
+
     private async Task<dynamic?> SendAsync(HttpMethod method, string path, object? body = null)
     {
         using var request = new HttpRequestMessage(method, path.TrimStart('/'));

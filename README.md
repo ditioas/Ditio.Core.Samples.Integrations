@@ -28,6 +28,7 @@ Example integrations for the **Ditio Core API** — one folder per integration k
 **Get data out of Ditio** (read / sync)
 
 - [`data-extraction`](data-extraction/README.md) — projects, work orders, checklists, alerts, project transactions, absences, payroll, users, images … (paginated `v1/*`)
+- [`data-extraction-sync`](data-extraction-sync/README.md) — keep a local database in sync with small deltas (`ModifiedSince` + `continuationToken`, deletions included), for Power BI or your own reporting
 
 **Send data to another system**
 
