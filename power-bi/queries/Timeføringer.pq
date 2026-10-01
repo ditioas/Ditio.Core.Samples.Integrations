@@ -1,4 +1,4 @@
-// Project transactions: hours, machine hours and quantities (v1/time-registrations).
+// Prosjekttransaksjoner: timer for personer, maskiner og kjøretøy (v1/time-registrations).
 let
     Records = DitioExtract("v1/time-registrations", DitioDateWindow()),
     Columns = {"id", "workDate", "startDateTime", "stopDateTime", "qty", "unitName", "unitQty", "unitPrice", "price", "amount", "costPriceBase", "costPriceMan", "costPriceMachine", "costAmount", "costAmountMan", "costAmountMachine", "breakQty", "description", "descriptionInternal", "approved", "approvedByName", "approvedDateTime", "payrollApproved", "payrollApprovedDateTime", "locked", "lockedByName", "lockedDateTime", "invoiced", "projectId", "projectNumber", "projectName", "projectExternalNumber", "projectCompanyId", "projectCompanyName", "projectLeaderName", "projectMainForemanName", "taskId", "taskName", "taskNameLong", "taskWbsNumber", "taskChapterId", "taskPieceWorkId", "resourceId", "resourceNumber", "resourceName", "resourceTypeName", "primaryResourceName", "machineEmissionClass", "userId", "userName", "userEmployeeNumber", "userCompanyName", "userCompanyOrgNr", "userWorkTitle", "userWorkShiftSettingName", "createdDateTime", "modifiedDateTime", "isDeleted"},
@@ -75,6 +75,9 @@ let
         {"isDeleted", type logical}
     }, "en-US"),
     WithoutDeleted = Table.SelectRows(Typed, each [isDeleted] <> true),
-    Result = WithoutDeleted
+    WithDateKey = Table.AddColumn(WithoutDeleted, "dateKey", each Date.From([workDate]), type date),
+    // Keep the loaded period only, so every row has a day in the Dato table.
+    InPeriod = Table.SelectRows(WithDateKey, each [dateKey] <> null and [dateKey] >= FromDate and [dateKey] <= ToDate),
+    Result = InPeriod
 in
     Result

@@ -1,4 +1,4 @@
-// Item (goods) transactions (v1/item-registrations/web-query).
+// Varetransaksjoner: forbruk, salg, innkjøp og justering (v1/item-registrations/web-query).
 let
     Token = DitioGetAccessToken(),
     // Bound outside the Query record: inside it, FromDate/ToDate would refer to the record's own fields.
@@ -18,7 +18,7 @@ let
     Status = Value.Metadata(Response)[Response.Status],
     Checked =
         if Status >= 400 then
-            error Error.Record("Ditio API request failed", "HTTP " & Text.From(Status) & " from v1/item-registrations/web-query", Text.FromBinary(Body))
+            error Error.Record("Ditio API-kall feilet", "HTTP " & Text.From(Status) & " fra v1/item-registrations/web-query", Text.FromBinary(Body))
         else
             Body,
     // Semicolon-separated, one header row (localised, ignored) then one line per transaction.
@@ -40,7 +40,7 @@ let
         Numbers,
         {"transDate", each if _ = null or _ = "" then null else DateTime.FromText(_, [Format = "dd.MM.yyyy HH:mm:ss", Culture = "en-US"]), type datetime}
     ),
-    Result = Table.TransformColumnTypes(TransDate, {
+    Typed = Table.TransformColumnTypes(TransDate, {
         {"itemName", type text},
         {"projectName", type text},
         {"projectNumber", type text},
@@ -50,6 +50,14 @@ let
         {"machineName", type text},
         {"warehouseName", type text},
         {"description", type text}
-    })
+    }),
+    Mapped1 = Table.AddColumn(Typed, "transTypeName", each
+        if [transType] = null then null
+        else Record.FieldOrDefault([Consumption = "Forbruk", Sale = "Salg", Purchase = "Innkjøp", Adjustment = "Justering"], [transType], [transType]),
+        type text),
+    WithDateKey = Table.AddColumn(Mapped1, "dateKey", each Date.From([transDate]), type date),
+    // Keep the loaded period only, so every row has a day in the Dato table.
+    InPeriod = Table.SelectRows(WithDateKey, each [dateKey] <> null and [dateKey] >= FromDate and [dateKey] <= ToDate),
+    Result = InPeriod
 in
     Result

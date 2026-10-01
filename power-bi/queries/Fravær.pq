@@ -1,4 +1,4 @@
-// Absence, one row per absence day (v1/absence-registrations). Free-text and sick-leave details are left out.
+// Fravær, én rad per fraværsdag (v1/absence-registrations). Fritekst og sykemeldingsdetaljer er utelatt.
 let
     Records = DitioExtract("v1/absence-registrations", DitioDateWindow()),
     Columns = {"id", "registrationId", "date", "startTime", "qty", "absenceTypeId", "absenceTypeCode", "absenceTypeName", "employeeNumber", "userId", "projectId", "approved", "approvedByName", "approvedDateTime", "payrollApproved", "payrollApprovedDateTime", "locked", "lockedDateTime", "pdfUrl", "modifiedDateTime", "isDeleted"},
@@ -38,6 +38,9 @@ let
         {"isDeleted", type logical}
     }, "en-US"),
     WithoutDeleted = Table.SelectRows(Typed, each [isDeleted] <> true),
-    Result = WithoutDeleted
+    WithDateKey = Table.AddColumn(WithoutDeleted, "dateKey", each Date.From([date]), type date),
+    // Keep the loaded period only, so every row has a day in the Dato table.
+    InPeriod = Table.SelectRows(WithDateKey, each [dateKey] <> null and [dateKey] >= FromDate and [dateKey] <= ToDate),
+    Result = InPeriod
 in
     Result

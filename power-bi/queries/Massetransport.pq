@@ -1,4 +1,4 @@
-// Mass transport trips from Ditio Flow and legacy mass haul, the old TripLog table (v1/flow-trip-registrations).
+// Massetransport: turer fra Ditio Flow og eldre massetransport (v1/flow-trip-registrations).
 let
     Records = DitioExtract("v1/flow-trip-registrations", DitioDateWindow()),
     Columns = {"id", "loadDateTime", "dumpDateTime", "costStartDateTime", "costEndDateTime", "quantity", "quantityM3", "registeredQuantity", "verifiedQuantity", "unitOfMeasureText", "massTypeId", "massType", "m3PerHour", "totalCycleTimeSeconds", "totalCycleTimeHours", "utilizationRate", "distance", "averageSpeedKmh", "netAltitudeChange", "totalAscent", "maxGradient", "averageGradient", "loadLocationName", "dumpLocationName", "loaderId", "loaderName", "loaderNumber", "loaderDriverName", "dumperId", "dumperName", "dumperNumber", "dumperRegistrationNumber", "dumperDriverName", "dumperDriverCompanyName", "trailer", "verified", "approved", "invoiced", "receiptNumber", "customerName", "comment", "projectId", "projectNumber", "projectName", "projectExternalNumber", "projectCompanyName", "taskId", "taskName", "isFlowData", "modifiedDateTime", "isDeleted", "loadCoordinates", "dumpCoordinates"},
@@ -79,6 +79,13 @@ let
         {"isDeleted", type logical}
     }, "en-US"),
     WithoutDeleted = Table.SelectRows(Typed, each [isDeleted] <> true),
-    Result = WithoutDeleted
+    Mapped1 = Table.AddColumn(WithoutDeleted, "unitName", each
+        if [unitOfMeasureText] = null then null
+        else Record.FieldOrDefault([Ton = "tonn", CubicMeter = "m³"], [unitOfMeasureText], [unitOfMeasureText]),
+        type text),
+    WithDateKey = Table.AddColumn(Mapped1, "dateKey", each Date.From([loadDateTime]), type date),
+    // Keep the loaded period only, so every row has a day in the Dato table.
+    InPeriod = Table.SelectRows(WithDateKey, each [dateKey] <> null and [dateKey] >= FromDate and [dateKey] <= ToDate),
+    Result = InPeriod
 in
     Result
