@@ -36,7 +36,7 @@ Example integrations for the **Ditio Core API** — one folder per integration k
 **Other**
 
 - [`postman`](postman/README.md) — Postman collection + Production/Test environments
-- `PowerBI template` — Power BI data-source template
+- [`power-bi`](power-bi/README.md) — Power BI template built on the data-extraction endpoints
 
 ## Environments
 
