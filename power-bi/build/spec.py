@@ -29,6 +29,12 @@ COLUMN_TYPES = {
     "date": ("type date", "dateTime"),
 }
 
+# Power BI incremental refresh for the registration tables (applies once published to the Power BI
+# service): keep this many months, re-read only this many most recent days on each refresh.
+# Customers can change both in Power BI Desktop (table > Incremental refresh).
+STORE_MONTHS = 24
+REFRESH_DAYS = 60
+
 # The date-only column every registration table gets, related to the Dato table.
 DATE_KEY_COLUMN = "dateKey"
 DATE_KEY_LABEL = "Dato"

@@ -4,7 +4,7 @@
 
 A Power BI template that loads Ditio data through the **Data Extraction API** (`v1/*` on the Reporting API) — the same paginated, documented endpoints described in [`data-extraction`](../data-extraction/README.md). The report is in Norwegian.
 
-**File:** [`Ditio-PowerBI-mal.pbit`](Ditio-PowerBI-mal.pbit) (v2.1.0)
+**File:** [`Ditio-PowerBI-mal.pbit`](Ditio-PowerBI-mal.pbit) (v2.2.0)
 
 ## What it loads
 
@@ -24,7 +24,7 @@ A Power BI template that loads Ditio data through the **Data Extraction API** (`
 
 The model also has:
 
-- **`Dato`**: one row per day in the loaded period, with ISO weeks (Monday start), Norwegian month and weekday names. It is marked as the date table, and every registration table is related to it on its `Dato` column.
+- **`Dato`**: one row per day from three years back to the end of next year, with ISO weeks (Monday start), Norwegian month and weekday names. It is marked as the date table, and every registration table is related to it on its `Dato` column.
 - **`Målinger`**: ready-made measures in display folders: hours (person, machine, vehicle, approved, payroll-approved, unapproved older than 14 days), machines, absence, HSE and quality (incidents per 100,000 person hours, checklists with deviations), mass transport (tonnes and m³ kept apart), items, economy (cost, sales, contribution margin and how complete prices are) and data status.
 - **`Datakilder`**, **`Feltordliste`** and **`Datagrunnlag`**: the tables behind the Start and Feltordliste pages.
 
@@ -55,7 +55,7 @@ More pages (overview, hours, machines, mass transport, HSE and quality, payroll,
    | `CoreApiUrl` | `https://integration.ditio.no` (production) or `https://core-api.ditio.dev/core` (test). Only for your own queries against the Core API; the template's tables don't use it. |
    | `ClientId` / `ClientSecret` | The API client from step 1. The template requests a fresh token on every refresh. |
    | `AccessToken` | Optional. A ready-made token with the `reportingapiv1` scope, used instead of `ClientId`/`ClientSecret`. |
-   | `FromDate` / `ToDate` | The registrations to load, both days inclusive. Projects, work orders, resources and users are always loaded in full. |
+   | `RangeStart` / `RangeEnd` | The period loaded in Power BI Desktop: RangeStart included, RangeEnd not. Once published, the incremental refresh policy takes over (see below). Projects, work orders, resources and users are always loaded in full. |
    | `CompanyId` | Optional. Only load data registered in this Ditio company. Leave empty to load everything the API client can see. Not applied to `Varetransaksjoner`. |
 
 3. When asked how to connect to `core-api.ditio.app` and `identity.ditio.app`, choose **Anonymous** — the template sends its own bearer token. When asked about privacy levels, set both to **Organizational** (not *Private* — Power BI won't combine two Private sources).
@@ -63,6 +63,18 @@ More pages (overview, hours, machines, mass transport, HSE and quality, payroll,
 Large date windows are fine: every endpoint is read page by page (`continuationToken`) until all data is loaded.
 
 The template contains no company data, credentials or tokens. You enter them when you open it.
+
+## How data stays current: incremental refresh
+
+The registration tables (`Timeføringer`, `Maskinregistreringer`, `Fravær`, `Varsler`, `Sjekklister`, `Massetransport`, `Varetransaksjoner`) carry a Power BI **incremental refresh** policy:
+
+- **Power BI Desktop** loads only `RangeStart`–`RangeEnd`.
+- **The Power BI service** splits each table into date partitions. The first refresh after publishing loads the last **24 months**; every later refresh re-reads only the last **60 days**, partition by partition. Power BI passes each partition's `RangeStart`/`RangeEnd` to the query, which sends them to the API as `FromDateTime`/`ToDateTime` and still pages with `continuationToken` inside each partition.
+- Lookup tables (projects, work orders, resources, users) are reloaded in full each time; they are small.
+
+Changes or deletions in registrations older than the refresh window aren't picked up until the data is reloaded in full (republish from Desktop). Customers can change both periods in Power BI Desktop (table → Incremental refresh) before publishing; the defaults are `STORE_MONTHS` and `REFRESH_DAYS` in [`build/spec.py`](build/spec.py).
+
+Power BI can't keep a sync watermark between refreshes, so it can't apply the API's change feed (`ModifiedSince` + deletes) itself. For true incremental sync into a database that Power BI then reads, see [`data-extraction-sync`](../data-extraction-sync/README.md).
 
 ## Scheduled refresh in the Power BI service
 
@@ -88,7 +100,7 @@ v1.x (`Ditio api - data source examples v1.6.0.pbit`) read internal Ditio endpoi
 | `TripLog_ChunkLoaded` | `Massetransport` (`DumpLengdegrad`/`DumpBreddegrad` → `Dump lengdegrad`/`Dump breddegrad`) |
 | — | `Prosjekter`, `Arbeidsordrer`, `Ressurser`, `Maskinregistreringer`, `Sjekklister` (new) |
 
-The `AuthToken`, `ApiUrl`, `TransportApiUrl` and `ProjectCompanyId` parameters are replaced by `ClientId`/`ClientSecret` (or `AccessToken`), `ReportingApiUrl`/`IdentityUrl`/`CoreApiUrl` and `CompanyId`. `FromDate`/`ToDate` are now dates rather than text.
+The `AuthToken`, `ApiUrl`, `TransportApiUrl` and `ProjectCompanyId` parameters are replaced by `ClientId`/`ClientSecret` (or `AccessToken`), `ReportingApiUrl`/`IdentityUrl`/`CoreApiUrl` and `CompanyId`. The text `FromDate`/`ToDate` parameters are replaced by the DateTime parameters `RangeStart`/`RangeEnd` (v2.2.0; v2.1.0 had Date-typed `FromDate`/`ToDate`).
 
 To move an existing report, add the queries from [`queries/`](queries/) to it (Power Query → **New Source → Blank Query → Advanced Editor**, one query per file, named after the file) and repoint your visuals to the new tables and fields.
 
@@ -96,8 +108,8 @@ To move an existing report, add the queries from [`queries/`](queries/) to it (P
 
 - `Varetransaksjoner` comes from an endpoint that returns semicolon-separated text, not JSON, and has no ids — only names and project numbers. Its header row is ignored and the columns are named by position. It is not paged, and a `"` inside an item name or description currently breaks parsing of that row.
 - Date/time columns hold the value the API returns, without time-zone conversion, so Power BI Desktop and the Power BI service show the same times. *Sist oppdatert* is in UTC.
-- `Varsler` and `Sjekklister` are loaded with `ModifiedSince = FromDate`, because their endpoints don't filter on `FromDateTime`/`ToDateTime`. Every registration table is then clipped to `FromDate`–`ToDate` on its date, so all tables cover the same period.
-- A fresh access token is requested for each table. A single table that takes longer than the token lifetime to load fails with `401`; narrow `FromDate`/`ToDate` if that happens.
+- `Varsler` and `Sjekklister` are loaded with `ModifiedSince = RangeStart`, because their endpoints don't filter on `FromDateTime`/`ToDateTime`. Every registration table is then clipped to `[RangeStart, RangeEnd)` on its date, so partitions never overlap.
+- A fresh access token is requested for each table. A single table that takes longer than the token lifetime to load fails with `401`; narrow `RangeStart`/`RangeEnd` (or the refresh window) if that happens.
 - `Brukere` has one row per **person**, keyed on the identity user id that registrations carry. A person with profiles in several companies (project companies, subsidiaries) is shown with the profile in their employer company; *Antall profiler* says how many profiles they have. Personal fields (birth date, address, next of kin) are left out on purpose.
 - *Varsler per 100 000 persontimer* is a reporting rate, not H1/H2: Ditio doesn't register lost-time injuries.
 - Economy measures (*Kostbeløp*, *Dekningsbidrag* …) are only as complete as the prices registered in Ditio; *Andel timer med kost* shows how complete they are.

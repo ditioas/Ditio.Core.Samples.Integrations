@@ -4,7 +4,7 @@ import json
 import uuid
 from pathlib import Path
 
-from spec import COLUMN_TYPES, DATE_KEY_COLUMN, DATE_KEY_LABEL, RELATIONSHIPS, is_hidden
+from spec import COLUMN_TYPES, DATE_KEY_COLUMN, DATE_KEY_LABEL, REFRESH_DAYS, RELATIONSHIPS, STORE_MONTHS, is_hidden
 from queries import (
     DATE_COLUMNS, FUNCTIONS, MEASURE_HOST_QUERY, DATA_STATUS_QUERY, PARAMETERS,
     output_columns, render_date_query, render_parameter, render_static_table,
@@ -193,9 +193,8 @@ def static_queries(data_tables, labels):
          [_plain_column(GLOSSARY_TABLE, c, "text")
           for c in ("Tabell", "Felt i rapporten", "API-felt", "Excel-kolonne", "Beskrivelse")],
          glossary, "Hjelpetabeller", {}),
-        (STATUS_TABLE, "Perioden som er lastet og når dataene sist ble hentet.",
-         [_plain_column(STATUS_TABLE, "Fra dato", "date"), _plain_column(STATUS_TABLE, "Til dato", "date"),
-          _plain_column(STATUS_TABLE, "Oppdatert (UTC)", "datetime")],
+        (STATUS_TABLE, "Når dataene sist ble hentet.",
+         [_plain_column(STATUS_TABLE, "Oppdatert (UTC)", "datetime")],
          DATA_STATUS_QUERY, "Hjelpetabeller", {}),
     ]
 
@@ -205,7 +204,17 @@ def build_model(data_queries, measures, labels):
     tables = []
     for table, m in data_queries:
         columns = [_model_column(table, api, kind, label, excel) for api, kind, label, excel in labels.columns(table)]
-        tables.append(_table(table["name"], table["description"], columns, m, "Data"))
+        extra = {}
+        if "date_key" in table:
+            # Incremental refresh: the service splits the table into date partitions and calls the
+            # query once per partition with that partition's RangeStart/RangeEnd.
+            extra["refreshPolicy"] = {
+                "policyType": "basic",
+                "rollingWindowGranularity": "month", "rollingWindowPeriods": STORE_MONTHS,
+                "incrementalGranularity": "day", "incrementalPeriods": REFRESH_DAYS,
+                "sourceExpression": m.split("\n"),
+            }
+        tables.append(_table(table["name"], table["description"], columns, m, "Data", **extra))
 
     data_tables = [t for t, _ in data_queries]
     for name, description, columns, m, group, extra in static_queries(data_tables, labels):

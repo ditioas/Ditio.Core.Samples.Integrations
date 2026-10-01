@@ -88,10 +88,16 @@ def check_model(model):
                 elif ref_column not in columns[ref_table]:
                     errors.append(f"measure {measure['name']!r}: unknown column '{ref_table}'[{ref_column}]")
             for ref in re.findall(r"(?<!')\[([^\]]+)\]", dax):
-                if ref not in measures:
+                # [Value] is the column of a DAX table constructor, e.g. MINX({a, b}, [Value]).
+                if ref not in measures and ref != "Value":
                     errors.append(f"measure {measure['name']!r}: unknown measure [{ref}]")
             if dax.count("(") != dax.count(")"):
                 errors.append(f"measure {measure['name']!r}: unbalanced parentheses")
+        policy = table.get("refreshPolicy")
+        if policy:
+            source = "\n".join(policy["sourceExpression"])
+            if "RangeStart" not in source or "RangeEnd" not in source:
+                errors.append(f"{table['name']}: incremental refresh policy but the query doesn't filter on RangeStart/RangeEnd")
         for column in table["columns"]:
             sort_by = column.get("sortByColumn")
             if sort_by and sort_by not in columns[table["name"]]:

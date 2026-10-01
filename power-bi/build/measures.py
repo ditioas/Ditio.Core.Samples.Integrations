@@ -18,6 +18,12 @@ def _per_table(tables, expression_for):
     return "SWITCH(SELECTEDVALUE('Datakilder'[Tabell]),\n    " + ",\n    ".join(branches) + "\n)"
 
 
+def _earliest_or_latest(tables, label_of, function):
+    """MIN/MAX of the date key over every registration table (blank tables are skipped)."""
+    values = ", ".join(f"{function}('{t['name']}'[{label_of(t, 'dateKey')}])" for t in tables if "date_key" in t)
+    return f"{function}X({{{values}}}, [Value])"
+
+
 def build_measures(tables, label_of):
     """tables: every data table (spec dicts); label_of(table, api): the column's label."""
 
@@ -125,8 +131,10 @@ def build_measures(tables, label_of):
          "Antall rader lastet i tabellen. Brukes i tabellen over datakilder."),
         ("Sist endret i data", "Datagrunnlag", _per_table(tables, last_modified), DATETIME,
          "Nyeste endring i tabellens data. Viser hvor ferske dataene er."),
-        ("Data fra", "Datagrunnlag", "MIN('Dato'[Dato])", DATE, "Første dag i perioden som er lastet."),
-        ("Data til", "Datagrunnlag", "MAX('Dato'[Dato])", DATE, "Siste dag i perioden som er lastet."),
+        ("Data fra", "Datagrunnlag", _earliest_or_latest(tables, label_of, "MIN"), DATE,
+         "Første dag med registreringer i dataene som er lastet."),
+        ("Data til", "Datagrunnlag", _earliest_or_latest(tables, label_of, "MAX"), DATE,
+         "Siste dag med registreringer i dataene som er lastet."),
         ("Sist oppdatert (UTC)", "Datagrunnlag", "MAX('Datagrunnlag'[Oppdatert (UTC)])", DATETIME,
          "Når dataene sist ble hentet fra Ditio."),
     ]

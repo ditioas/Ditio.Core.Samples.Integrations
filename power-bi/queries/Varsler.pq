@@ -52,8 +52,8 @@ let
         else Record.FieldOrDefault([Open = "Åpen", InProgress = "Pågår", Closed = "Lukket"], [statusText], [statusText]),
         type text),
     WithDateKey = Table.AddColumn(Mapped2, "dateKey", each Date.From([createdAt]), type date),
-    // Keep the loaded period only, so every row has a day in the Dato table.
-    InPeriod = Table.SelectRows(WithDateKey, each [dateKey] <> null and [dateKey] >= FromDate and [dateKey] <= ToDate),
+    // Keep [RangeStart, RangeEnd) only: incremental-refresh partitions must not overlap.
+    InPeriod = Table.SelectRows(WithDateKey, each [dateKey] <> null and [dateKey] >= Date.From(RangeStart) and [dateKey] < Date.From(RangeEnd)),
     Result = InPeriod
 in
     Result
