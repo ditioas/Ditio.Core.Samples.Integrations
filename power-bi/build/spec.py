@@ -30,10 +30,12 @@ COLUMN_TYPES = {
 }
 
 # Power BI incremental refresh for the registration tables (applies once published to the Power BI
-# service): keep this many months, re-read only this many most recent days on each refresh.
-# Customers can change both in Power BI Desktop (table > Incremental refresh).
+# service): keep this many months, re-read only this many most recent months on each refresh.
+# Month partitions keep the number of API calls low (one partition = one paged extraction per table);
+# three months covers late approvals and payroll locks. Customers can change both in Power BI Desktop
+# (table > Incremental refresh). The Dato table spans three years back, so keep STORE_MONTHS <= 36.
 STORE_MONTHS = 24
-REFRESH_DAYS = 60
+REFRESH_MONTHS = 3
 
 # The date-only column every registration table gets, related to the Dato table.
 DATE_KEY_COLUMN = "dateKey"
@@ -231,7 +233,9 @@ TABLES = [
         "name": "Maskinregistreringer",
         "path": "v1/machine-registrations",
         "window": True,
-        "date_key": "startDateTime",
+        # The endpoint filters on the stop time, so partitions must be keyed on it too: a
+        # registration from 22:00 to 02:00 would otherwise fall into no partition.
+        "date_key": "stopDateTime",
         "description": "Maskinregistreringer (v1/machine-registrations).",
         "columns": [
             ("id", "text", "Registrerings-id"),

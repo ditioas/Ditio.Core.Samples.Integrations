@@ -8,7 +8,7 @@ import json
 import uuid
 
 from model import GLOSSARY_TABLE, MEASURE_TABLE, SOURCES_TABLE
-from spec import REFRESH_DAYS, STORE_MONTHS
+from spec import REFRESH_MONTHS, STORE_MONTHS
 
 PAGE_WIDTH, PAGE_HEIGHT = 1280, 720
 DOCS_URL = "https://docs.ditio.app/guides/powerbi/"
@@ -147,8 +147,9 @@ def start_page(version):
             [("Slik bruker du rapporten", BOLD, None)],
             [("1. I Power BI Desktop lastes perioden fra RangeStart til RangeEnd (Transformer data > Rediger "
               f"parametere). Publisert til Power BI-tjenesten holder rapporten de siste {STORE_MONTHS} månedene og "
-              f"henter bare de siste {REFRESH_DAYS} dagene på nytt ved hver oppdatering. Prosjekter, arbeidsordrer, "
-              "ressurser og brukere lastes alltid i sin helhet.", None, None)],
+              f"henter bare de siste {REFRESH_MONTHS} månedene på nytt ved hver oppdatering. Endringer i eldre "
+              "registreringer (for eksempel sene godkjenninger) kommer ikke med før rapporten publiseres på nytt. "
+              "Prosjekter, arbeidsordrer, ressurser og brukere lastes alltid i sin helhet.", None, None)],
             [("2. Tabellen til høyre viser hvor mange rader hver tabell har og når dataene sist ble endret i Ditio. "
               "En tom tabell betyr som regel at firmaet ikke bruker den delen av Ditio, eller at perioden er feil.", None, None)],
             [("3. Feltene heter det samme som kolonnene i Ditios Excel-eksport. Siden «Feltordliste» viser hva hvert "

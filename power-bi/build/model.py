@@ -4,7 +4,7 @@ import json
 import uuid
 from pathlib import Path
 
-from spec import COLUMN_TYPES, DATE_KEY_COLUMN, DATE_KEY_LABEL, REFRESH_DAYS, RELATIONSHIPS, STORE_MONTHS, is_hidden
+from spec import COLUMN_TYPES, DATE_KEY_COLUMN, DATE_KEY_LABEL, REFRESH_MONTHS, RELATIONSHIPS, STORE_MONTHS, is_hidden
 from queries import (
     DATE_COLUMNS, FUNCTIONS, MEASURE_HOST_QUERY, DATA_STATUS_QUERY, PARAMETERS,
     output_columns, render_date_query, render_parameter, render_static_table,
@@ -211,7 +211,7 @@ def build_model(data_queries, measures, labels):
             extra["refreshPolicy"] = {
                 "policyType": "basic",
                 "rollingWindowGranularity": "month", "rollingWindowPeriods": STORE_MONTHS,
-                "incrementalGranularity": "day", "incrementalPeriods": REFRESH_DAYS,
+                "incrementalGranularity": "month", "incrementalPeriods": REFRESH_MONTHS,
                 "sourceExpression": m.split("\n"),
             }
         tables.append(_table(table["name"], table["description"], columns, m, "Data", **extra))

@@ -154,17 +154,18 @@ in
         "description": "Filteret ModifiedSince fra RangeStart, for endepunkter som ikke filtrerer på FromDateTime/ToDateTime. Alt som er opprettet i perioden, er endret etter RangeStart.",
         "m": """() as record =>
 [
-    ModifiedSince = DateTime.ToText(RangeStart, [Format = "yyyy-MM-dd'T'HH:mm:ss", Culture = "en-US"])
+    ModifiedSince = Date.ToText(Date.From(RangeStart), "yyyy-MM-dd") & "T00:00:00"
 ]""",
     },
     {
         "name": "DitioDateWindow",
-        "description": "Filteret FromDateTime/ToDateTime fra RangeStart til (men ikke med) RangeEnd.",
+        "description": "Filteret FromDateTime/ToDateTime fra RangeStart til RangeEnd, hele dager.",
         "m": """() as record =>
 [
-    FromDateTime = DateTime.ToText(RangeStart, [Format = "yyyy-MM-dd'T'HH:mm:ss", Culture = "en-US"]),
-    // The API's ToDateTime is inclusive; stop one second before RangeEnd so partitions don't overlap.
-    ToDateTime = DateTime.ToText(RangeEnd - #duration(0, 0, 0, 1), [Format = "yyyy-MM-dd'T'HH:mm:ss", Culture = "en-US"])
+    // Whole days. The API's ToDateTime is inclusive, so a row exactly at RangeEnd is fetched by two
+    // neighbouring partitions; the [RangeStart, RangeEnd) clip in each table keeps it in one.
+    FromDateTime = Date.ToText(Date.From(RangeStart), "yyyy-MM-dd") & "T00:00:00",
+    ToDateTime = Date.ToText(Date.From(RangeEnd), "yyyy-MM-dd") & "T00:00:00"
 ]""",
     },
 ]

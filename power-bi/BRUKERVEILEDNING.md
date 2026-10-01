@@ -84,10 +84,10 @@ Deretter setter du opp **planlagt oppdatering**. Med Power BI Pro kan du oppdate
 Malen bruker **inkrementell oppdatering** (*incremental refresh*) for registreringene (timer, maskinregistreringer, fravær, varsler, sjekklister, massetransport og varer):
 
 - **I Power BI Desktop** lastes bare perioden fra RangeStart til RangeEnd.
-- **I Power BI-tjenesten** deler Power BI dataene i perioder etter dato. Første oppdatering etter publisering henter de siste **24 månedene**; den tar lengst tid. Deretter henter hver oppdatering bare de siste **60 dagene** på nytt. Eldre måneder blir liggende som de var.
+- **I Power BI-tjenesten** deler Power BI dataene i perioder etter dato. Første oppdatering etter publisering henter de siste **24 månedene**; den tar lengst tid. Deretter henter hver oppdatering bare de siste **3 månedene** på nytt. Eldre måneder blir liggende som de var.
 - Prosjekter, arbeidsordrer, ressurser og brukere hentes alltid i sin helhet.
 
-Dette gjør oppdateringene raske og skåner både Power BI og Ditio. Ulempen er at endringer i registreringer som er **eldre enn 60 dager** (for eksempel en sen korrigering eller sletting), ikke kommer med før dataene hentes helt på nytt. Det gjør du ved å publisere rapporten på nytt fra Power BI Desktop.
+Dette gjør oppdateringene raske og skåner både Power BI og Ditio. Ulempen er at endringer i registreringer som er **eldre enn 3 måneder** (for eksempel en sen godkjenning, lønnslåsing, korrigering eller sletting), ikke kommer med før dataene hentes helt på nytt. Det gjør du ved å publisere rapporten på nytt fra Power BI Desktop.
 
 Vil du beholde flere måneder eller hente flere dager på nytt, endrer du det i Power BI Desktop: høyreklikk tabellen → **Inkrementell oppdatering** (*Incremental refresh*), før du publiserer.
 

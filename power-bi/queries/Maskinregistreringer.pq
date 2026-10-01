@@ -38,7 +38,7 @@ let
         {"isDeleted", type logical}
     }, "en-US"),
     WithoutDeleted = Table.SelectRows(Typed, each [isDeleted] <> true),
-    WithDateKey = Table.AddColumn(WithoutDeleted, "dateKey", each Date.From([startDateTime]), type date),
+    WithDateKey = Table.AddColumn(WithoutDeleted, "dateKey", each Date.From([stopDateTime]), type date),
     // Keep [RangeStart, RangeEnd) only: incremental-refresh partitions must not overlap.
     InPeriod = Table.SelectRows(WithDateKey, each [dateKey] <> null and [dateKey] >= Date.From(RangeStart) and [dateKey] < Date.From(RangeEnd)),
     Result = InPeriod
