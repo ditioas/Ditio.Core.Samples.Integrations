@@ -62,6 +62,8 @@ More pages (overview, hours, machines, mass transport, HSE and quality, payroll,
 
 Large date windows are fine: every endpoint is read page by page (`continuationToken`) until all data is loaded.
 
+For true incremental sync (only changes and deletions since the last run, into your own database), use [`data-extraction-sync`](../data-extraction-sync/README.md) and point Power BI at that database.
+
 The template contains no company data, credentials or tokens. You enter them when you open it.
 
 ## Scheduled refresh in the Power BI service
