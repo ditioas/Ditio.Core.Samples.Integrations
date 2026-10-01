@@ -399,3 +399,6 @@ FodyWeavers.xsd
 
 # Local secrets (do not commit)
 appsettings.json
+
+# Local database written by the data-extraction-sync example (holds company data)
+ditio-sync.db*
