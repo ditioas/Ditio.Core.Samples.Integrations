@@ -1,6 +1,6 @@
-// Checklists / forms (v1/checklist-registrations).
+// Sjekklister og skjema (v1/checklist-registrations).
 let
-    Records = DitioExtract("v1/checklist-registrations", DitioDateWindow()),
+    Records = DitioExtract("v1/checklist-registrations", DitioModifiedWindow()),
     Columns = {"id", "documentNumber", "serialNumber", "templateName", "templateVersion", "baseTypeName", "statusText", "hasDeviation", "hasComment", "hasImages", "projectId", "projectNumber", "projectName", "activityNumber", "activityName", "machineId", "resourceNumber", "createdByUserName", "createdDateTime", "submittedByUserName", "submittedDateTime", "approvedByUserName", "latitude", "longitude", "modifiedDateTime", "pdfUrl", "isDeleted"},
     Raw =
         if List.IsEmpty(Records) then
@@ -44,6 +44,13 @@ let
         {"isDeleted", type logical}
     }, "en-US"),
     WithoutDeleted = Table.SelectRows(Typed, each [isDeleted] <> true),
-    Result = WithoutDeleted
+    Mapped1 = Table.AddColumn(WithoutDeleted, "statusName", each
+        if [statusText] = null then null
+        else Record.FieldOrDefault([Pending = "Ikke sendt", SentForApproval = "Sendt til godkjenning", Approved = "Godkjent", Rejected = "Avvist", Reported = "Rapportert"], [statusText], [statusText]),
+        type text),
+    WithDateKey = Table.AddColumn(Mapped1, "dateKey", each Date.From([createdDateTime]), type date),
+    // Keep the loaded period only, so every row has a day in the Dato table.
+    InPeriod = Table.SelectRows(WithDateKey, each [dateKey] <> null and [dateKey] >= FromDate and [dateKey] <= ToDate),
+    Result = InPeriod
 in
     Result

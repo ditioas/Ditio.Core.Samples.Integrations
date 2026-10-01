@@ -1,2 +1,2 @@
-// client_secret of the same API client. Leave empty when using AccessToken.
+// client_secret for samme API-klient. La stå tom hvis du bruker AccessToken.
 null meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=false]

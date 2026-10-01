@@ -1,4 +1,4 @@
-// Calls a Data Extraction v1/* endpoint and follows continuationToken until every page is loaded. Returns the list of records.
+// Kaller et Data Extraction-endepunkt (v1/*) og følger continuationToken til alle sider er lastet. Returnerer listen med poster.
 (path as text, optional filters as nullable record) as list =>
 let
     Token = DitioGetAccessToken(),
@@ -21,7 +21,7 @@ let
             Status = Value.Metadata(Response)[Response.Status]
         in
             if Status >= 400 then
-                error Error.Record("Ditio API request failed", "HTTP " & Text.From(Status) & " from " & path, Text.FromBinary(Body))
+                error Error.Record("Ditio API-kall feilet", "HTTP " & Text.From(Status) & " fra " & path, Text.FromBinary(Body))
             else
                 Json.Document(Body),
     Pages = List.Generate(

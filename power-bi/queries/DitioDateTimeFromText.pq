@@ -1,4 +1,4 @@
-// Parses an API date/time as the wall-clock value the API returns, without time-zone conversion. Empty and 0001-01-01 values become null.
+// Leser dato/tid slik API-et sender den, uten tidssonekonvertering. Tomme verdier og 0001-01-01 blir tomme.
 (value as nullable text) as nullable datetime =>
     if value = null or value = "" or Text.StartsWith(value, "0001-01-01") then
         null

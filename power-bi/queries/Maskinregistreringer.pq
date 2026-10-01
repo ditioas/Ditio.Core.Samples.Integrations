@@ -1,4 +1,4 @@
-// Machine registrations (v1/machine-registrations).
+// Maskinregistreringer (v1/machine-registrations).
 let
     Records = DitioExtract("v1/machine-registrations", DitioDateWindow()),
     Columns = {"id", "startDateTime", "stopDateTime", "qty", "description", "approved", "machineId", "machineName", "resourceNumber", "machineTypeName", "driverId", "driverName", "driverCompanyName", "projectId", "projectNumber", "projectName", "projectExternalNumber", "projectCompanyName", "createdDateTime", "modifiedDateTime", "isDeleted"},
@@ -38,6 +38,9 @@ let
         {"isDeleted", type logical}
     }, "en-US"),
     WithoutDeleted = Table.SelectRows(Typed, each [isDeleted] <> true),
-    Result = WithoutDeleted
+    WithDateKey = Table.AddColumn(WithoutDeleted, "dateKey", each Date.From([startDateTime]), type date),
+    // Keep the loaded period only, so every row has a day in the Dato table.
+    InPeriod = Table.SelectRows(WithDateKey, each [dateKey] <> null and [dateKey] >= FromDate and [dateKey] <= ToDate),
+    Result = InPeriod
 in
     Result

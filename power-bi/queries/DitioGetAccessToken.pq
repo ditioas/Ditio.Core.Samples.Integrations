@@ -1,4 +1,4 @@
-// Returns AccessToken if set, otherwise requests a client-credentials token with the reportingapiv1 scope.
+// Returnerer AccessToken hvis den er satt, ellers hentes en client-credentials-nøkkel med scope reportingapiv1.
 () as text =>
 let
     UseProvidedToken = AccessToken <> null and AccessToken <> "",
@@ -6,7 +6,7 @@ let
         if UseProvidedToken then
             AccessToken
         else if ClientId = null or ClientId = "" or ClientSecret = null or ClientSecret = "" then
-            error Error.Record("Ditio credentials missing", "Set the ClientId and ClientSecret parameters, or AccessToken.")
+            error Error.Record("Ditio-pålogging mangler", "Fyll ut parameterne ClientId og ClientSecret, eller AccessToken.")
         else
             let
                 Response = Web.Contents(
@@ -31,7 +31,7 @@ let
                 Status = Value.Metadata(Response)[Response.Status]
             in
                 if Status >= 400 then
-                    error Error.Record("Ditio token request failed", "HTTP " & Text.From(Status) & " from " & IdentityUrl, Text.FromBinary(Body))
+                    error Error.Record("Ditio-pålogging feilet", "HTTP " & Text.From(Status) & " fra " & IdentityUrl, Text.FromBinary(Body))
                 else
                     Json.Document(Body)[access_token]
 in

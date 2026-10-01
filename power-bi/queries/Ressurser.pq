@@ -1,4 +1,4 @@
-// Machines and other resources (v1/resource).
+// Ressurser: personer, maskiner, kjøretøy m.m. (v1/resource).
 let
     Records = DitioExtract("v1/resource", null),
     Columns = {"id", "number", "name", "typeName", "typeBaseName", "registrationNumber", "serialNumber", "department", "emissionClass", "buildYear", "weight", "capacity", "costPrice", "price", "companyId", "companyName", "active", "isExternal", "modifiedDateTime", "isDeleted"},
@@ -37,7 +37,11 @@ let
         {"isDeleted", type logical}
     }, "en-US"),
     WithoutDeleted = Table.SelectRows(Typed, each [isDeleted] <> true),
+    Mapped1 = Table.AddColumn(WithoutDeleted, "resourceGroup", each
+        if [typeBaseName] = null then null
+        else Record.FieldOrDefault([Human = "Person", Machine = "Maskin", Vehicle = "Kjøretøy", SeaVessel = "Fartøy", AirVessel = "Luftfartøy", StaticObject = "Fast installasjon", Other = "Annet"], [typeBaseName], [typeBaseName]),
+        type text),
     // Keys must be unique for the model relationships.
-    Result = Table.Distinct(WithoutDeleted, {"id"})
+    Result = Table.Distinct(Mapped1, {"id"})
 in
     Result
