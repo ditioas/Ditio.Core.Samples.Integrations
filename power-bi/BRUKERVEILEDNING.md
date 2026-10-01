@@ -29,7 +29,9 @@ Malen inneholder ingen data, passord eller nøkler. Du legger dem inn selv når 
 ## Dette trenger du
 
 - **Power BI Desktop** (gratis fra Microsoft, kun Windows).
-- **En API-klient i Ditio.** En administrator oppretter den i Ditio web under **Firma → Integrasjon** («API-klienter for Ditio API»). Ta vare på *client_id* og *client_secret*. API-klienten ser de samme dataene som brukeren den er knyttet til.
+- **En egen API-klient for Power BI.** En administrator oppretter den i Ditio web under **Oppsett → Integrasjon**. Ta vare på *client_id* og *client_secret*.
+  - Gi den bare tilgangen `reportingapiv1`. Ikke bruk en API-klient som også har `ditioapiv3`.
+  - Brukeren API-klienten er knyttet til, må være **administrator** for å lese prosjekter, ressurser og brukere. Derfor ser alle som kan se den publiserte rapporten, alle dataene som er lastet, også fravær og kostpriser, uansett hvilken tilgang de selv har i Ditio. Begrens hvem som kan se rapporten, eller legg på radnivåsikkerhet (*row-level security*) i Power BI.
 
 Får du feilen `invalid_scope`, mangler API-klienten tilgang til rapportdata (`reportingapiv1`). Kontakt [support@ditio.no](mailto:support@ditio.no).
 
@@ -44,7 +46,7 @@ Får du feilen `invalid_scope`, mangler API-klienten tilgang til rapportdata (`r
    | IdentityUrl | La stå: `https://identity.ditio.app` |
    | CoreApiUrl | La stå: `https://integration.ditio.no`. Brukes bare hvis du lager egne spørringer mot Core API. |
    | ClientId / ClientSecret | Fra API-klienten din |
-   | AccessToken | La stå tom |
+   | AccessToken | La stå tom. Fyller du den ut, brukes den i stedet for ClientId/ClientSecret og fornyes aldri, så planlagt oppdatering slutter å virke når den utløper. |
    | FromDate / ToDate | Perioden du vil se på, for eksempel 01.01.2026–31.12.2026. Begge dagene tas med. |
    | CompanyId | La stå tom, med mindre du bare vil ha data fra ett av firmaene i konsernet |
 
@@ -54,7 +56,9 @@ Får du feilen `invalid_scope`, mangler API-klienten tilgang til rapportdata (`r
 
 Du endrer perioden senere under **Transformer data → Rediger parametere** (*Transform data → Edit parameters*), og deretter **Oppdater** (*Refresh*).
 
-Store perioder går fint. Malen henter dataene side for side, og jo mer dere registrerer, jo lenger tar det.
+Alle tabeller unntatt varetransaksjoner hentes side for side, så lange perioder går fint. Hver tabell får en ny pålogging. Tar én tabell lenger tid å laste enn påloggingen varer, feiler oppdateringen med HTTP 401; del da opp perioden.
+
+Varsler og sjekklister hentes som «endret siden FromDate» og begrenses deretter til perioden.
 
 ## Lage egne visualiseringer
 
@@ -86,20 +90,24 @@ Deretter setter du opp **planlagt oppdatering**. Med Power BI Pro kan du oppdate
 
 ## Del rapporten trygt
 
-*ClientSecret* lagres i rapportfilen. Behandle `.pbix`-filen som et passord: del den bare med dem som skal se dataene. Gi heller andre tilgang til den publiserte rapporten. Bruk gjerne en egen API-klient bare for Power BI, så kan du slå den av uten å påvirke andre integrasjoner.
+*ClientSecret* (og *AccessToken*, hvis den er fylt ut) lagres **i klartekst** i rapportfilen og i den publiserte semantiske modellen. Alle som kan åpne, laste ned eller redigere rapporten, kan lese den og hente data fra Ditio som administrator, også utenfor rapporten.
+
+- Bruk en egen API-klient for Power BI med bare `reportingapiv1`.
+- Del filen og redigeringstilgang til arbeidsområdet bare med dem som kan se alle firmaets data. Gi heller andre tilgang til den publiserte rapporten.
+- Lekker filen, eller slutter noen som hadde tilgang, bytter du hemmeligheten eller deaktiverer API-klienten under **Oppsett → Integrasjon**.
 
 ## Feilsøking
 
 | Problem | Årsak | Løsning |
 |---------|-------|---------|
-| «Ditio-pålogging mangler» | ClientId eller ClientSecret er tom | Fyll dem ut under Rediger parametere |
+| «Ditio-pålogging mangler» | Verken ClientId/ClientSecret eller AccessToken er fylt ut | Fyll ut ClientId og ClientSecret under Rediger parametere |
 | «Ditio-pålogging feilet» med `invalid_client` | Feil ClientId/ClientSecret, eller API-klienten er laget i et annet miljø | Kontroller verdiene, og at IdentityUrl og ReportingApiUrl peker på samme miljø |
 | «Ditio-pålogging feilet» med `invalid_scope` | API-klienten mangler tilgang til rapportdata | Kontakt support@ditio.no |
 | «Ditio API-kall feilet» med HTTP 403 | Brukeren API-klienten er knyttet til, har ikke tilgang. Prosjekter, ressurser og brukere krever administrator. | Be en administrator sjekke at API-klienten er knyttet til en administrator i Ditio |
 | *Formula.Firewall* | Personvernnivå er ikke satt eller satt til Privat | Sett begge Ditio-adressene til Organisasjon under Innstillinger for datakilde (*File → Options and settings → Data source settings*) |
 | «Kan ikke teste tilkoblingen» i Power BI-tjenesten | Testen sendes uten Ditio-pålogging | Huk av for «Hopp over testtilkobling» |
 | En tabell har 0 rader | Firmaet bruker ikke den delen av Ditio, eller perioden er feil | Sjekk FromDate/ToDate og CompanyId |
-| HTTP 401 midt i en lang oppdatering | Påloggingen utløp mens en svært stor tabell ble lastet | Del opp perioden |
+| «Ditio API-kall feilet» med HTTP 401 | IdentityUrl og ReportingApiUrl peker på ulike miljøer (test og produksjon); en utfylt AccessToken er utløpt eller mangler `reportingapiv1`; eller én tabell tok lenger tid å laste enn påloggingen varer | Bruk produksjonsverdiene (eller testverdiene) for begge; tøm AccessToken og bruk ClientId/ClientSecret; del opp perioden |
 
 ## Hjelp
 
