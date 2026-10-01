@@ -47,7 +47,7 @@ Får du feilen `invalid_scope`, mangler API-klienten tilgang til rapportdata (`r
    | CoreApiUrl | La stå: `https://integration.ditio.no`. Brukes bare hvis du lager egne spørringer mot Core API. |
    | ClientId / ClientSecret | Fra API-klienten din |
    | AccessToken | La stå tom. Fyller du den ut, brukes den i stedet for ClientId/ClientSecret og fornyes aldri, så planlagt oppdatering slutter å virke når den utløper. |
-   | RangeStart / RangeEnd | Perioden som lastes i Power BI Desktop, for eksempel 01.04.2026 00:00 til 01.07.2026 00:00. RangeStart tas med, RangeEnd tas ikke med. Velg gjerne noen få måneder; når rapporten publiseres, henter Power BI-tjenesten selv de siste 24 månedene (se «Slik holdes dataene oppdatert»). |
+   | RangeStart / RangeEnd | Perioden som lastes i Power BI Desktop, for eksempel 01.04.2026 00:00 til 01.07.2026 00:00. RangeStart tas med, RangeEnd tas ikke med. Publiserer du rapporten, holder noen få måneder: Power BI-tjenesten henter selv de siste 24 månedene (se «Slik holdes dataene oppdatert»). Bruker du bare Power BI Desktop, setter du hele perioden du vil se. |
    | CompanyId | La stå tom, med mindre du bare vil ha data fra ett av firmaene i konsernet |
 
 3. **Velg pålogging.** Power BI spør hvordan den skal koble til `core-api.ditio.app` og `identity.ditio.app`. Velg **Anonym** (*Anonymous*) for begge. Malen logger inn selv med API-klienten.
@@ -84,10 +84,15 @@ Deretter setter du opp **planlagt oppdatering**. Med Power BI Pro kan du oppdate
 Malen bruker **inkrementell oppdatering** (*incremental refresh*) for registreringene (timer, maskinregistreringer, fravær, varsler, sjekklister, massetransport og varer):
 
 - **I Power BI Desktop** lastes bare perioden fra RangeStart til RangeEnd.
-- **I Power BI-tjenesten** deler Power BI dataene i perioder etter dato. Første oppdatering etter publisering henter de siste **24 månedene**; den tar lengst tid. Deretter henter hver oppdatering bare de siste **3 månedene** på nytt. Eldre måneder blir liggende som de var.
+- **I Power BI-tjenesten** deler Power BI dataene i perioder etter dato. Første oppdatering etter publisering henter de siste **24 månedene**; den tar lengst tid. Deretter henter hver oppdatering **inneværende måned og de to foregående** på nytt. Eldre måneder blir liggende som de var.
 - Prosjekter, arbeidsordrer, ressurser og brukere hentes alltid i sin helhet.
 
-Dette gjør oppdateringene raske og skåner både Power BI og Ditio. Ulempen er at endringer i registreringer som er **eldre enn 3 måneder** (for eksempel en sen godkjenning, lønnslåsing, korrigering eller sletting), ikke kommer med før dataene hentes helt på nytt. Det gjør du ved å publisere rapporten på nytt fra Power BI Desktop.
+Dette gjør oppdateringene raske og skåner både Power BI og Ditio.
+
+> **Eldre registreringer fryses.** Registreringer med dato før den første i måneden to måneder tilbake hentes **ikke** på nytt. Den 15. oktober gjelder det alt med dato før 1. august. En sen godkjenning, lønnslåsing, korrigering eller sletting på en slik registrering kommer ikke med før dataene hentes helt på nytt: publiser rapporten på nytt fra Power BI Desktop.
+
+- **Ta vare på .pbix-filen.** En modell med inkrementell oppdatering kan ikke lastes ned igjen fra Power BI-tjenesten. Til første oppdatering etter en ny publisering er ferdig, viser rapporten bare perioden fra Power BI Desktop.
+- **Tar første oppdatering for lang tid?** Power BI Pro stopper en oppdatering etter 2 timer. Går den første 24-månedersinnlastingen ut på tid, setter du ned antall måneder som lagres før du publiserer.
 
 Vil du beholde flere måneder eller hente flere dager på nytt, endrer du det i Power BI Desktop: høyreklikk tabellen → **Inkrementell oppdatering** (*Incremental refresh*), før du publiserer.
 
