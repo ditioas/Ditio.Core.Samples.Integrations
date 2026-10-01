@@ -1,9 +1,9 @@
 // Varetransaksjoner: forbruk, salg, innkjøp og justering (v1/item-registrations/web-query).
 let
     Token = DitioGetAccessToken(),
-    // Bound outside the Query record: inside it, FromDate/ToDate would refer to the record's own fields.
-    FromDateText = Date.ToText(FromDate, "yyyy-MM-dd"),
-    ToDateText = Date.ToText(ToDate, "yyyy-MM-dd"),
+    // The endpoint takes whole days, both included: RangeStart's day up to the day before RangeEnd.
+    FromDateText = Date.ToText(Date.From(RangeStart), "yyyy-MM-dd"),
+    ToDateText = Date.ToText(Date.AddDays(Date.From(RangeEnd), -1), "yyyy-MM-dd"),
     Response = Web.Contents(
         ReportingApiUrl,
         [
@@ -56,8 +56,8 @@ let
         else Record.FieldOrDefault([Consumption = "Forbruk", Sale = "Salg", Purchase = "Innkjøp", Adjustment = "Justering"], [transType], [transType]),
         type text),
     WithDateKey = Table.AddColumn(Mapped1, "dateKey", each Date.From([transDate]), type date),
-    // Keep the loaded period only, so every row has a day in the Dato table.
-    InPeriod = Table.SelectRows(WithDateKey, each [dateKey] <> null and [dateKey] >= FromDate and [dateKey] <= ToDate),
+    // Keep [RangeStart, RangeEnd) only: incremental-refresh partitions must not overlap.
+    InPeriod = Table.SelectRows(WithDateKey, each [dateKey] <> null and [dateKey] >= Date.From(RangeStart) and [dateKey] < Date.From(RangeEnd)),
     Result = InPeriod
 in
     Result

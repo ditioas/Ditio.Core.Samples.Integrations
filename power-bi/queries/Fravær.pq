@@ -39,8 +39,8 @@ let
     }, "en-US"),
     WithoutDeleted = Table.SelectRows(Typed, each [isDeleted] <> true),
     WithDateKey = Table.AddColumn(WithoutDeleted, "dateKey", each Date.From([date]), type date),
-    // Keep the loaded period only, so every row has a day in the Dato table.
-    InPeriod = Table.SelectRows(WithDateKey, each [dateKey] <> null and [dateKey] >= FromDate and [dateKey] <= ToDate),
+    // Keep [RangeStart, RangeEnd) only: incremental-refresh partitions must not overlap.
+    InPeriod = Table.SelectRows(WithDateKey, each [dateKey] <> null and [dateKey] >= Date.From(RangeStart) and [dateKey] < Date.From(RangeEnd)),
     Result = InPeriod
 in
     Result

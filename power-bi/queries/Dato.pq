@@ -1,9 +1,14 @@
 // Én rad per dag i perioden som er lastet. Uker etter ISO 8601 (mandag først).
 let
-    // One row per day in the loaded window. Weeks follow ISO 8601 (Monday start), as used in Norway.
+    // One row per day from three years back (or RangeStart, if earlier) to the end of next year.
+    // It doesn't follow RangeStart/RangeEnd alone: in the Power BI service those only describe a partition.
+    // Weeks follow ISO 8601 (Monday start), as used in Norway.
     MonthNames = {"januar", "februar", "mars", "april", "mai", "juni", "juli", "august", "september", "oktober", "november", "desember"},
     DayNames = {"mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag", "søndag"},
-    Days = List.Dates(FromDate, Duration.Days(ToDate - FromDate) + 1, #duration(1, 0, 0, 0)),
+    Today = Date.From(DateTimeZone.UtcNow()),
+    FirstDay = List.Min({Date.From(RangeStart), Date.StartOfYear(Date.AddYears(Today, -3))}),
+    LastDay = List.Max({Date.AddDays(Date.From(RangeEnd), -1), Date.EndOfYear(Date.AddYears(Today, 1))}),
+    Days = List.Dates(FirstDay, Duration.Days(LastDay - FirstDay) + 1, #duration(1, 0, 0, 0)),
     Rows = List.Transform(Days, (d) =>
         let
             Thursday = Date.AddDays(d, 3 - Date.DayOfWeek(d, Day.Monday))

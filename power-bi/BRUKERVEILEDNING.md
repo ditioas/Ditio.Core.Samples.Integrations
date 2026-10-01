@@ -2,7 +2,7 @@
 
 Med Power BI-malen fra Ditio henter du data fra Ditio rett inn i Power BI. Du lager dine egne rapporter uten å skrive spørringer selv. Malen er på norsk, og feltene heter det samme som i Ditios Excel-eksport.
 
-**Last ned:** [`Ditio-PowerBI-mal.pbit`](Ditio-PowerBI-mal.pbit) (versjon 2.1.0)
+**Last ned:** [`Ditio-PowerBI-mal.pbit`](Ditio-PowerBI-mal.pbit) (versjon 2.2.0)
 
 ## Dette får du
 
@@ -47,18 +47,18 @@ Får du feilen `invalid_scope`, mangler API-klienten tilgang til rapportdata (`r
    | CoreApiUrl | La stå: `https://integration.ditio.no`. Brukes bare hvis du lager egne spørringer mot Core API. |
    | ClientId / ClientSecret | Fra API-klienten din |
    | AccessToken | La stå tom. Fyller du den ut, brukes den i stedet for ClientId/ClientSecret og fornyes aldri, så planlagt oppdatering slutter å virke når den utløper. |
-   | FromDate / ToDate | Perioden du vil se på, for eksempel 01.01.2026–31.12.2026. Begge dagene tas med. |
+   | RangeStart / RangeEnd | Perioden som lastes i Power BI Desktop, for eksempel 01.04.2026 00:00 til 01.07.2026 00:00. RangeStart tas med, RangeEnd tas ikke med. Velg gjerne noen få måneder; når rapporten publiseres, henter Power BI-tjenesten selv de siste 24 månedene (se «Slik holdes dataene oppdatert»). |
    | CompanyId | La stå tom, med mindre du bare vil ha data fra ett av firmaene i konsernet |
 
 3. **Velg pålogging.** Power BI spør hvordan den skal koble til `core-api.ditio.app` og `identity.ditio.app`. Velg **Anonym** (*Anonymous*) for begge. Malen logger inn selv med API-klienten.
 4. **Velg personvernnivå.** Sett begge adressene til **Organisasjon** (*Organizational*). Ikke velg *Privat*, for da kan ikke Power BI koble dataene sammen.
 5. **Vent til dataene er lastet,** og sjekk startsiden. Hver tabell skal ha rader, og «Sist endret i data» skal være nylig.
 
-Du endrer perioden senere under **Transformer data → Rediger parametere** (*Transform data → Edit parameters*), og deretter **Oppdater** (*Refresh*).
+I Power BI Desktop endrer du perioden under **Transformer data → Rediger parametere** (*Transform data → Edit parameters*), og deretter **Oppdater** (*Refresh*).
 
-Alle tabeller unntatt varetransaksjoner hentes side for side, så lange perioder går fint. Hver tabell får en ny pålogging. Tar én tabell lenger tid å laste enn påloggingen varer, feiler oppdateringen med HTTP 401; del da opp perioden.
+Alle tabeller unntatt varetransaksjoner hentes side for side, så lange perioder går fint. Hver tabell får en ny pålogging. Tar én tabell lenger tid å laste enn påloggingen varer, feiler oppdateringen med HTTP 401; korte da ned perioden.
 
-Varsler og sjekklister hentes som «endret siden FromDate» og begrenses deretter til perioden.
+Varsler og sjekklister hentes som «endret siden RangeStart» og begrenses deretter til perioden.
 
 ## Lage egne visualiseringer
 
@@ -78,6 +78,18 @@ Når rapporten er publisert til Power BI-tjenesten, går du til datasettets **In
 - Huk av for **Hopp over testtilkobling** (*Skip test connection*). Testen sendes uten Ditio-pålogging og feiler alltid; selve oppdateringen virker.
 
 Deretter setter du opp **planlagt oppdatering**. Med Power BI Pro kan du oppdatere opptil 8 ganger i døgnet. Du trenger ingen gateway.
+
+## Slik holdes dataene oppdatert
+
+Malen bruker **inkrementell oppdatering** (*incremental refresh*) for registreringene (timer, maskinregistreringer, fravær, varsler, sjekklister, massetransport og varer):
+
+- **I Power BI Desktop** lastes bare perioden fra RangeStart til RangeEnd.
+- **I Power BI-tjenesten** deler Power BI dataene i perioder etter dato. Første oppdatering etter publisering henter de siste **24 månedene**; den tar lengst tid. Deretter henter hver oppdatering bare de siste **3 månedene** på nytt. Eldre måneder blir liggende som de var.
+- Prosjekter, arbeidsordrer, ressurser og brukere hentes alltid i sin helhet.
+
+Dette gjør oppdateringene raske og skåner både Power BI og Ditio. Ulempen er at endringer i registreringer som er **eldre enn 3 måneder** (for eksempel en sen godkjenning, lønnslåsing, korrigering eller sletting), ikke kommer med før dataene hentes helt på nytt. Det gjør du ved å publisere rapporten på nytt fra Power BI Desktop.
+
+Vil du beholde flere måneder eller hente flere dager på nytt, endrer du det i Power BI Desktop: høyreklikk tabellen → **Inkrementell oppdatering** (*Incremental refresh*), før du publiserer.
 
 ## Godt å vite
 
@@ -106,8 +118,8 @@ Deretter setter du opp **planlagt oppdatering**. Med Power BI Pro kan du oppdate
 | «Ditio API-kall feilet» med HTTP 403 | Brukeren API-klienten er knyttet til, har ikke tilgang. Prosjekter, ressurser og brukere krever administrator. | Be en administrator sjekke at API-klienten er knyttet til en administrator i Ditio |
 | *Formula.Firewall* | Personvernnivå er ikke satt eller satt til Privat | Sett begge Ditio-adressene til Organisasjon under Innstillinger for datakilde (*File → Options and settings → Data source settings*) |
 | «Kan ikke teste tilkoblingen» i Power BI-tjenesten | Testen sendes uten Ditio-pålogging | Huk av for «Hopp over testtilkobling» |
-| En tabell har 0 rader | Firmaet bruker ikke den delen av Ditio, eller perioden er feil | Sjekk FromDate/ToDate og CompanyId |
-| «Ditio API-kall feilet» med HTTP 401 | IdentityUrl og ReportingApiUrl peker på ulike miljøer (test og produksjon); en utfylt AccessToken er utløpt eller mangler `reportingapiv1`; eller én tabell tok lenger tid å laste enn påloggingen varer | Bruk produksjonsverdiene (eller testverdiene) for begge; tøm AccessToken og bruk ClientId/ClientSecret; del opp perioden |
+| En tabell har 0 rader | Firmaet bruker ikke den delen av Ditio, eller perioden er feil | Sjekk RangeStart/RangeEnd og CompanyId |
+| «Ditio API-kall feilet» med HTTP 401 | IdentityUrl og ReportingApiUrl peker på ulike miljøer (test og produksjon); en utfylt AccessToken er utløpt eller mangler `reportingapiv1`; eller én tabell tok lenger tid å laste enn påloggingen varer | Bruk produksjonsverdiene (eller testverdiene) for begge; tøm AccessToken og bruk ClientId/ClientSecret; korte ned perioden |
 
 ## Hjelp
 

@@ -50,8 +50,8 @@ Generert av `build/build_pbit.py` – ikke rediger for hånd.
 | Andel timer med salgspris | Økonomi | Hvor stor del av timene som har salgspris. |
 | Rader | Datagrunnlag | Antall rader lastet i tabellen. Brukes i tabellen over datakilder. |
 | Sist endret i data | Datagrunnlag | Nyeste endring i tabellens data. Viser hvor ferske dataene er. |
-| Data fra | Datagrunnlag | Første dag i perioden som er lastet. |
-| Data til | Datagrunnlag | Siste dag i perioden som er lastet. |
+| Data fra | Datagrunnlag | Første dag med registreringer i dataene som er lastet. |
+| Data til | Datagrunnlag | Siste dag med registreringer i dataene som er lastet. |
 | Sist oppdatert (UTC) | Datagrunnlag | Når dataene sist ble hentet fra Ditio. |
 
 ## Prosjekter

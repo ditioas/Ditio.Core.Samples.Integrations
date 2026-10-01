@@ -43,8 +43,15 @@ PARAMETERS = [
                         "client_secret for samme API-klient. La stå tom hvis du bruker AccessToken."),
     _optional_parameter("AccessToken", "Text",
                         "Valgfri. En ferdig tilgangsnøkkel med scope reportingapiv1. Når den er satt, brukes ikke ClientId/ClientSecret."),
-    _optional_parameter("FromDate", "Date", "Første dag med registreringer som skal lastes (tas med).", required=True),
-    _optional_parameter("ToDate", "Date", "Siste dag med registreringer som skal lastes (tas med).", required=True),
+    # RangeStart/RangeEnd are Power BI's reserved incremental-refresh parameters (names are case-sensitive).
+    # In Power BI Desktop they are the period you load; in the Power BI service the refresh policy sets
+    # them per partition, so only recent partitions are re-read on each refresh.
+    _optional_parameter("RangeStart", "DateTime",
+                        "Starten på perioden som lastes i Power BI Desktop (tas med). I Power BI-tjenesten styres den av oppdateringspolicyen.",
+                        required=True),
+    _optional_parameter("RangeEnd", "DateTime",
+                        "Slutten på perioden som lastes i Power BI Desktop (tas ikke med). I Power BI-tjenesten styres den av oppdateringspolicyen.",
+                        required=True),
     _optional_parameter("CompanyId", "Text",
                         "Valgfri. Last bare data registrert i dette Ditio-firmaet. La stå tom for alt API-klienten har tilgang til."),
 ]
@@ -144,19 +151,21 @@ in
     },
     {
         "name": "DitioModifiedWindow",
-        "description": "Filteret ModifiedSince fra FromDate, for endepunkter som ikke filtrerer på FromDateTime/ToDateTime. Alt som er opprettet i perioden, er endret etter FromDate.",
+        "description": "Filteret ModifiedSince fra RangeStart, for endepunkter som ikke filtrerer på FromDateTime/ToDateTime. Alt som er opprettet i perioden, er endret etter RangeStart.",
         "m": """() as record =>
 [
-    ModifiedSince = Date.ToText(FromDate, "yyyy-MM-dd") & "T00:00:00"
+    ModifiedSince = Date.ToText(Date.From(RangeStart), "yyyy-MM-dd") & "T00:00:00"
 ]""",
     },
     {
         "name": "DitioDateWindow",
-        "description": "Filteret FromDateTime/ToDateTime fra FromDate til og med ToDate.",
+        "description": "Filteret FromDateTime/ToDateTime fra RangeStart til RangeEnd, hele dager.",
         "m": """() as record =>
 [
-    FromDateTime = Date.ToText(FromDate, "yyyy-MM-dd") & "T00:00:00",
-    ToDateTime = Date.ToText(ToDate, "yyyy-MM-dd") & "T23:59:59"
+    // Whole days. The API's ToDateTime is inclusive, so a row exactly at RangeEnd is fetched by two
+    // neighbouring partitions; the [RangeStart, RangeEnd) clip in each table keeps it in one.
+    FromDateTime = Date.ToText(Date.From(RangeStart), "yyyy-MM-dd") & "T00:00:00",
+    ToDateTime = Date.ToText(Date.From(RangeEnd), "yyyy-MM-dd") & "T00:00:00"
 ]""",
     },
 ]
@@ -197,8 +206,8 @@ def _date_key_step(table, step):
         return [], step
     return [
         f'    WithDateKey = Table.AddColumn({step}, "{DATE_KEY_COLUMN}", each Date.From([{table["date_key"]}]), type date),',
-        "    // Keep the loaded period only, so every row has a day in the Dato table.",
-        f'    InPeriod = Table.SelectRows(WithDateKey, each [{DATE_KEY_COLUMN}] <> null and [{DATE_KEY_COLUMN}] >= FromDate and [{DATE_KEY_COLUMN}] <= ToDate),',
+        "    // Keep [RangeStart, RangeEnd) only: incremental-refresh partitions must not overlap.",
+        f'    InPeriod = Table.SelectRows(WithDateKey, each [{DATE_KEY_COLUMN}] <> null and [{DATE_KEY_COLUMN}] >= Date.From(RangeStart) and [{DATE_KEY_COLUMN}] < Date.From(RangeEnd)),',
     ], "InPeriod"
 
 
@@ -310,9 +319,9 @@ def render_item_query(table):
     text_types = m_column_types([(n, k) for n, k in spec_columns if k == "text"])
     head = f"""let
     Token = DitioGetAccessToken(),
-    // Bound outside the Query record: inside it, FromDate/ToDate would refer to the record's own fields.
-    FromDateText = Date.ToText(FromDate, "yyyy-MM-dd"),
-    ToDateText = Date.ToText(ToDate, "yyyy-MM-dd"),
+    // The endpoint takes whole days, both included: RangeStart's day up to the day before RangeEnd.
+    FromDateText = Date.ToText(Date.From(RangeStart), "yyyy-MM-dd"),
+    ToDateText = Date.ToText(Date.AddDays(Date.From(RangeEnd), -1), "yyyy-MM-dd"),
     Response = Web.Contents(
         ReportingApiUrl,
         [
@@ -391,10 +400,15 @@ def render_date_query():
     months = ", ".join(m_text(m) for m in MONTHS)
     days = ", ".join(m_text(d) for d in WEEKDAYS)
     return f"""let
-    // One row per day in the loaded window. Weeks follow ISO 8601 (Monday start), as used in Norway.
+    // One row per day from three years back (or RangeStart, if earlier) to the end of next year.
+    // It doesn't follow RangeStart/RangeEnd alone: in the Power BI service those only describe a partition.
+    // Weeks follow ISO 8601 (Monday start), as used in Norway.
     MonthNames = {{{months}}},
     DayNames = {{{days}}},
-    Days = List.Dates(FromDate, Duration.Days(ToDate - FromDate) + 1, #duration(1, 0, 0, 0)),
+    Today = Date.From(DateTimeZone.UtcNow()),
+    FirstDay = List.Min({{Date.From(RangeStart), Date.StartOfYear(Date.AddYears(Today, -3))}}),
+    LastDay = List.Max({{Date.AddDays(Date.From(RangeEnd), -1), Date.EndOfYear(Date.AddYears(Today, 1))}}),
+    Days = List.Dates(FirstDay, Duration.Days(LastDay - FirstDay) + 1, #duration(1, 0, 0, 0)),
     Rows = List.Transform(Days, (d) =>
         let
             Thursday = Date.AddDays(d, 3 - Date.DayOfWeek(d, Day.Monday))
@@ -433,8 +447,8 @@ in
 
 DATA_STATUS_QUERY = """let
     Source = #table(
-        type table [#"Fra dato" = date, #"Til dato" = date, #"Oppdatert (UTC)" = datetime],
-        {{FromDate, ToDate, DateTimeZone.RemoveZone(DateTimeZone.UtcNow())}}
+        type table [#"Oppdatert (UTC)" = datetime],
+        {{DateTimeZone.RemoveZone(DateTimeZone.UtcNow())}}
     )
 in
     Source"""

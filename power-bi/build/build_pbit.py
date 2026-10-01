@@ -31,7 +31,7 @@ from pages import THEME, THEME_FILE, build_layout, glossary_page, start_page
 from queries import FUNCTIONS, PARAMETERS, render_item_query, render_parameter, render_table_query
 from spec import ITEM_TABLE, TABLES
 
-VERSION = "2.1.0"
+VERSION = "2.2.0"
 
 HERE = Path(__file__).resolve().parent
 POWER_BI_DIR = HERE.parent
