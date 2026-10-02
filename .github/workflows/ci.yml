@@ -42,3 +42,22 @@ jobs:
         # Warnings are not errors here: the samples favour readability over
         # ceremony, and a warning should not block a docs-only change.
         run: dotnet build --no-restore --configuration Release
+
+      # The Power BI template, its .pq files and feltordliste.md are generated
+      # by power-bi/build/build_pbit.py (byte-identical on every run). Rebuild
+      # and fail if the committed files differ: someone edited a generated
+      # file by hand, or changed the generator without rebuilding.
+      - name: Rebuild the Power BI template
+        run: python3 power-bi/build/build_pbit.py
+
+      - name: Check the committed template matches the generator
+        run: |
+          if ! git diff --exit-code --stat -- power-bi; then
+            echo "::error::power-bi/ differs from what build_pbit.py generates. Run python3 power-bi/build/build_pbit.py and commit the result."
+            exit 1
+          fi
+          untracked=$(git ls-files --others --exclude-standard -- power-bi)
+          if [ -n "$untracked" ]; then
+            echo "::error::build_pbit.py generated files that are not committed: $untracked"
+            exit 1
+          fi
