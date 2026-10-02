@@ -10,6 +10,7 @@ let
         {"Timeføringer", "v1/time-registrations", "Prosjekttransaksjoner: timer for personer, maskiner og kjøretøy (v1/time-registrations)."},
         {"Maskinregistreringer", "v1/machine-registrations", "Maskinregistreringer (v1/machine-registrations)."},
         {"Fravær", "v1/absence-registrations", "Fravær, én rad per fraværsdag (v1/absence-registrations). Fritekst og sykemeldingsdetaljer er utelatt."},
+        {"Lønn per dag", "v1/payroll-lines-extended", "Lønnsgrunnlag, én rad per ansatt per dag med timer eller fravær (v1/payroll-lines-extended). Bare timer, ingen lønnsbeløp. Overtid utover 50 % og 100 % er ikke med."},
         {"Varsler", "v1/incident-registrations", "Varsler: HMS, kvalitet, miljø, maskin m.m. (v1/incident-registrations). Risiko og skadetype er utelatt fordi de sjelden fylles ut."},
         {"Sjekklister", "v1/checklist-registrations", "Sjekklister og skjema (v1/checklist-registrations)."},
         {"Massetransport", "v1/flow-trip-registrations", "Massetransport: turer fra Ditio Flow og eldre massetransport (v1/flow-trip-registrations)."},

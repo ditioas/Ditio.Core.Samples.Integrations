@@ -35,6 +35,23 @@ Generert av `build/build_pbit.py` – ikke rediger for hånd.
 | Fraværstimer | Fravær | Fravær i timer. |
 | Fraværsdager | Fravær | Antall fraværsdager (én rad per person per dag). |
 | Godkjente fraværstimer | Fravær | Fravær i timer som er godkjent. |
+| Sykefraværstimer | Fravær | Fravær i timer med fraværsgruppe Sykefravær (egen- og sykemelding). Sykt barn er ikke med. |
+| Timer sykt barn | Fravær | Fravær i timer med fraværsgruppe Sykt barn. |
+| Andel sykefravær av fravær | Fravær | Sykefraværstimer delt på alt fravær. |
+| Sykefravær % | Fravær | Omtrentlig sykefravær: sykefraværstimer delt på normaltid pluss alt fravær fra lønnsgrunnlaget. Uten lønnsgrunnlag brukes persontimer pluss fraværstimer. Avhenger av at fraværstypene heter noe med «syk». |
+| Sykefravær % siste 12 mnd | Fravær | Sykefravær % for de 12 månedene fram til siste dag i utvalget. Jevner ut sesong og små team. |
+| Lønnsdager | Lønn og overtid | Antall ansatt-dager i lønnsgrunnlaget. |
+| Timer arbeidet (lønn) | Lønn og overtid | Arbeidede timer i lønnsgrunnlaget, med overtid og timebank, uten fravær. |
+| Normaltimer | Lønn og overtid | Ordinære timer: arbeidede timer minus overtid og timebank. |
+| Overtidstimer 50 % | Lønn og overtid | Timer med 50 % overtid. |
+| Overtidstimer 100 % | Lønn og overtid | Timer med 100 % overtid. |
+| Overtidstimer | Lønn og overtid | Overtid 50 % og 100 %. Andre overtidstyper er ikke med. |
+| Overtidsandel | Lønn og overtid | Overtidstimer delt på arbeidede timer. |
+| Timer til timebank | Lønn og overtid | Timer satt inn i timebanken. |
+| Avspasering | Lønn og overtid | Fravær i timer med fraværsgruppe Avspasering: uttak fra timebanken. |
+| Lønnstimer godkjent av leder | Lønn og overtid | Timer og fravær der alle registreringer for dagen er godkjent av leder. |
+| Lønnstimer lønnsgodkjent | Lønn og overtid | Arbeidede timer på dager som er godkjent for lønn. |
+| Lønnstimer låst | Lønn og overtid | Arbeidede timer på dager som er låst (sendt til lønn). |
 | Antall varsler | HMS og kvalitet | Alle varsler. |
 | Åpne varsler | HMS og kvalitet | Varsler som ikke er lukket. |
 | HMS-varsler | HMS og kvalitet | Varsler med hovedtype HMS. |
@@ -234,6 +251,34 @@ Generert av `build/build_pbit.py` – ikke rediger for hånd.
 | Låst | `locked` |  |  |
 | Låst dato | `lockedDateTime` | Låst dato |  |
 | PDF | `pdfUrl` |  |  |
+| Sist endret | `modifiedDateTime` |  |  |
+| Fraværsgruppe | `absenceGroup` |  | Beregnet fra fraværstypens navn: «syk» gir Sykefravær (Sykt barn hvis navnet også inneholder «barn»), «egenmeld» gir Sykefravær, «ferie» gir Ferie, «avspas» gir Avspasering, ellers Annet fravær. Gi fraværstypene navn som følger dette, eller endre regelen i spørringen. |
+
+## Lønn per dag
+
+| Felt i rapporten | API-felt | Excel-kolonne | Beskrivelse |
+|---|---|---|---|
+| Arbeidsdato | `transDateTime` |  |  |
+| Navn | `userName` |  |  |
+| Ansattnummer | `employeeNumber` | Ansattnummer |  |
+| Timer arbeidet | `qty` |  |  |
+| Normaltid | `standardQty` |  |  |
+| Overtid 50 % | `overtime50Qty` |  |  |
+| Overtid 100 % | `overtime100Qty` |  |  |
+| Til timebank | `timebankQty` |  |  |
+| Pause summert | `breakQty` | Pause summert |  |
+| Fravær totalt | `absenceQty` | Fravær totalt |  |
+| Fravær godkjent | `absenceApprovedQty` |  |  |
+| Fravær låst | `absenceLockedQty` |  |  |
+| Godkjent av leder (timer) | `totalVerifiedQty` |  |  |
+| Lønnsgodkjent (timer) | `approvedQty` |  |  |
+| Låst (timer) | `lockedQty` |  |  |
+| Godkjent av leder | `verified` |  |  |
+| Verifisert av | `verifiedByName` | Verifisert av |  |
+| Verifisert dato | `verifiedDateTime` | Verifisert dato |  |
+| Lønnsgodkjent | `approved` |  |  |
+| Godkjent av | `approvedByName` | Godkjent av |  |
+| Godkjent dato | `approvedDateTime` | Godkjent dato |  |
 | Sist endret | `modifiedDateTime` |  |  |
 
 ## Varsler

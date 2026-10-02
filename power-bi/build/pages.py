@@ -201,6 +201,9 @@ def start_page(version):
               "felt heter i rapporten, i API-et og i Excel.", None, None)],
             [("4. Bruk målingene i tabellen «Målinger» i egne visualiseringer, ikke summer av kolonner. "
               "Målingene tar hensyn til ting som blandede enheter (tonn og m³).", None, None)],
+            [("5. Sidene Oversikt, Timer, Maskiner, Lønn og overtid og Fravær har valg av periode og prosjekt øverst. "
+              "Lønnstallene krever at API-klienten representerer en administrator; feiler «Lønn per dag», setter du "
+              "parameteren IncludePayroll til false.", None, None)],
             [("Planlagt refresh i Power BI-tjenesten: velg Anonym pålogging og personvernnivå Organisasjon for "
               "begge Ditio-adressene, og huk av for «Hopp over testtilkobling».", None, None)],
             [("Mer hjelp: ", None, None), (DOCS_URL, None, DOCS_URL)],
@@ -243,7 +246,8 @@ def overview_page():
         ("Persontimer", "Persontimer"),
         ("Maskin- og kjøretøytimer", "Maskin- og kjøretøytimer"),
         ("Andel godkjent", "Andel godkjent"),
-        ("Antall personer", "Personer med timer"),
+        ("Overtidsandel", "Overtidsandel"),
+        ("Sykefravær %", "Sykefravær %"),
         ("HMS-varsler per 100 000 persontimer", "HMS-varsler per 100 000 t"),
         ("Åpne varsler", "Åpne varsler"),
         ("Antall sjekklister", "Sjekklister"),
@@ -306,6 +310,58 @@ def machines_page():
               "Aktive maskiner per uke"),
     ]
     return ("Maskiner", visuals)
+
+
+def payroll_page():
+    page = "payroll"
+    visuals = _header(page, "Lønn og overtid", "Fra lønnsgrunnlaget: bare timer, ingen beløp. Prosjektvalget påvirker "
+                                                "ikke lønnstallene.")
+    visuals += _cards(page, 100, 80, [
+        ("Timer arbeidet (lønn)", "Timer arbeidet"),
+        ("Overtidstimer", "Overtidstimer"),
+        ("Overtidsandel", "Overtidsandel"),
+        ("Timer til timebank", "Til timebank"),
+        ("Avspasering", "Avspasering"),
+    ])
+    visuals += [
+        chart(page, "split", 40, 195, 600, 240, "columnChart", MONTH,
+              [("measure", "Normaltimer"), ("measure", "Overtidstimer 50 %"), ("measure", "Overtidstimer 100 %"),
+               ("measure", "Timer til timebank")], "Normaltid, overtid og timebank per måned"),
+        chart(page, "share", 660, 195, 580, 240, "lineChart", MONTH, [("measure", "Overtidsandel")],
+              "Overtidsandel per måned"),
+        chart(page, "status", 40, 450, 400, 240, "clusteredColumnChart", MONTH,
+              [("measure", "Timer arbeidet (lønn)"), ("measure", "Lønnstimer godkjent av leder"),
+               ("measure", "Lønnstimer lønnsgodkjent"), ("measure", "Lønnstimer låst")], "Lønnsstatus per måned"),
+        chart(page, "timebank", 450, 450, 390, 240, "clusteredColumnChart", MONTH,
+              [("measure", "Timer til timebank"), ("measure", "Avspasering")], "Timebank: inn og avspasering"),
+        chart(page, "position", 850, 450, 390, 240, "clusteredBarChart", ("column", "Brukere", "Stilling"),
+              [("measure", "Overtidsandel")], "Overtidsandel per stilling",
+              order_by=(("measure", "Overtidsandel"), DESCENDING)),
+    ]
+    return ("Lønn og overtid", visuals)
+
+
+def absence_page():
+    page = "absence"
+    visuals = _header(page, "Fravær", "Sykefravær er omtrentlig og avhenger av fraværstypenes navn (se Feltordliste, "
+                                       "Fraværsgruppe). Sommeren domineres av ferie.")
+    visuals += _cards(page, 100, 80, [
+        ("Fraværsdager", "Fraværsdager"),
+        ("Fraværstimer", "Fraværstimer"),
+        ("Sykefravær %", "Sykefravær %"),
+        ("Sykefravær % siste 12 mnd", "Sykefravær % siste 12 mnd"),
+        ("Andel sykefravær av fravær", "Sykefravær av alt fravær"),
+    ])
+    visuals += [
+        chart(page, "month", 40, 195, 760, 240, "columnChart", MONTH, [("measure", "Fraværstimer")],
+              "Fraværstimer per måned og gruppe", series=("column", "Fravær", "Fraværsgruppe")),
+        chart(page, "sick", 820, 195, 420, 240, "lineChart", MONTH,
+              [("measure", "Sykefravær %"), ("measure", "Sykefravær % siste 12 mnd")], "Sykefravær % per måned"),
+        chart(page, "types", 40, 450, 1200, 240, "clusteredBarChart", ("column", "Fravær", "Fraværstype"),
+              [("measure", "Fraværsdager")], "Fraværsdager per type",
+              order_by=(("measure", "Fraværsdager"), DESCENDING)),
+    ]
+    return ("Fravær", visuals)
 
 
 def glossary_page():

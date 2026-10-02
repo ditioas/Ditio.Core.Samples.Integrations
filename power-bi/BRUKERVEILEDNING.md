@@ -2,7 +2,7 @@
 
 Med Power BI-malen fra Ditio henter du data fra Ditio rett inn i Power BI. Du lager dine egne rapporter uten å skrive spørringer selv. Malen er på norsk, og feltene heter det samme som i Ditios Excel-eksport.
 
-**Last ned:** [`Ditio-PowerBI-mal.pbit`](Ditio-PowerBI-mal.pbit) (versjon 2.2.0)
+**Last ned:** [`Ditio-PowerBI-mal.pbit`](Ditio-PowerBI-mal.pbit) (versjon 2.3.0)
 
 ## Dette får du
 
@@ -10,7 +10,8 @@ Med Power BI-malen fra Ditio henter du data fra Ditio rett inn i Power BI. Du la
 |--------|---------|
 | **Timeføringer** | Timer for personer, maskiner og kjøretøy, med prosjekt, arbeidsordre, godkjenning, lønnsgodkjenning, kost og pris |
 | **Maskinregistreringer** | Maskintimer per maskin, fører og prosjekt |
-| **Fravær** | Fravær per person og dag, med fraværstype og godkjenning |
+| **Fravær** | Fravær per person og dag, med fraværstype, fraværsgruppe og godkjenning |
+| **Lønn per dag** | Lønnsgrunnlaget per ansatt og dag: arbeidede timer, normaltid, overtid 50 % og 100 %, timebank, fravær og lønnsstatus. Bare timer, ingen lønnsbeløp. |
 | **Varsler** | HMS-, kvalitets-, miljø- og maskinvarsler med status |
 | **Sjekklister** | Sjekklister og skjema med status, mal og avvik |
 | **Massetransport** | Turer med mengde, massetype, laste- og dumpeområde, syklustid og avstand |
@@ -22,6 +23,12 @@ Malen har også:
 
 - **Ferdige målinger** i tabellen «Målinger», for eksempel *Persontimer*, *Maskintimer*, *Andel godkjent*, *Ikke godkjent over 14 dager*, *Fraværstimer*, *Varsler per 100 000 persontimer*, *Mengde tonn*, *Mengde m³* og *Dekningsbidrag*. Hele listen med forklaring står i [feltordlisten](feltordliste.md).
 - **Startsiden**, som viser perioden som er lastet, når dataene sist ble hentet, og hvor mange rader hver tabell har.
+- **Ferdige rapportsider**, alle med valg av periode og prosjekt øverst:
+  - *Oversikt*: nøkkeltall (persontimer, maskintimer, andel godkjent, overtidsandel, sykefravær %, HMS-varsler per 100 000 timer), timer per uke og per prosjekt.
+  - *Timer*: timer per prosjekt, arbeidsordre og ressurs per måned, godkjenningsløpet og ikke godkjente timer etter alder.
+  - *Maskiner*: maskin- og kjøretøytimer per uke og maskintype, timer per maskindag, og når hver maskin sist hadde timer.
+  - *Lønn og overtid*: normaltid, overtid og timebank per måned, overtidsandel, lønnsstatus og avspasering.
+  - *Fravær*: fravær per måned og gruppe, sykefravær % (også siste 12 måneder) og fravær per type.
 - **Feltordlisten**, som viser hva hvert felt heter i rapporten, i Ditios Excel-eksport og i API-et.
 
 Malen inneholder ingen data, passord eller nøkler. Du legger dem inn selv når du åpner den.
@@ -49,6 +56,7 @@ Får du feilen `invalid_scope`, mangler API-klienten tilgang til rapportdata (`r
    | AccessToken | La stå tom. Fyller du den ut, brukes den i stedet for ClientId/ClientSecret og fornyes aldri, så planlagt oppdatering slutter å virke når den utløper. |
    | RangeStart / RangeEnd | Perioden som lastes i Power BI Desktop, for eksempel 01.04.2026 00:00 til 01.07.2026 00:00. RangeStart tas med, RangeEnd tas ikke med. Publiserer du rapporten, holder noen få måneder: Power BI-tjenesten henter selv de siste 24 månedene (se «Slik holdes dataene oppdatert»). Bruker du bare Power BI Desktop, setter du hele perioden du vil se. |
    | CompanyId | La stå tom, med mindre du bare vil ha data fra ett av firmaene i konsernet |
+   | IncludePayroll | La stå `true`. Sett til `false` hvis du ikke vil ha lønnsgrunnlaget, eller hvis oppdateringen feiler på «Lønn per dag». Sidene «Lønn og overtid» blir da tomme, og sykefravær % regnes av persontimer i stedet. |
 
 3. **Velg pålogging.** Power BI spør hvordan den skal koble til `core-api.ditio.app` og `identity.ditio.app`. Velg **Anonym** (*Anonymous*) for begge. Malen logger inn selv med API-klienten.
 4. **Velg personvernnivå.** Sett begge adressene til **Organisasjon** (*Organizational*). Ikke velg *Privat*, for da kan ikke Power BI koble dataene sammen.
@@ -101,6 +109,9 @@ Vil du beholde flere måneder eller hente flere dager på nytt, endrer du det i 
 - **Brukere** har én rad per person. Har en person profil i flere firma, for eksempel prosjektfirma eller datterselskap, vises profilen i arbeidsgiverfirmaet. Kolonnen «Antall profiler» viser hvor mange profiler personen har.
 - **Varsler per 100 000 persontimer** viser hvor mye som rapporteres. Det er ikke H1/H2, fordi Ditio ikke registrerer fraværsskader.
 - **Kost og pris** (*Kostbeløp*, *Salgsbeløp*, *Dekningsbidrag*) er bare så komplette som prisene som er lagt inn i Ditio. *Andel timer med kost* viser hvor stor del av timene som har kostpris. Er den lav, er økonomitallene ufullstendige.
+- **Sykefravær %** er omtrentlig: sykefraværstimer delt på normaltid pluss alt fravær fra lønnsgrunnlaget. Ditio sender ikke hvilken kategori en fraværstype har, så kolonnen «Fraværsgruppe» leses fra navnet: navn med «syk» eller «egenmeld» blir Sykefravær (med «barn» blir det Sykt barn), «ferie» blir Ferie, «avspas» blir Avspasering, alt annet blir Annet fravær. Heter fraværstypene noe annet hos dere, endrer du regelen i spørringen «Fravær».
+- **Overtid** er overtid 50 % og 100 %. Andre overtidstyper er ikke med i lønnsgrunnlagets sammendrag. *Timer til timebank* er innskudd; uttak vises som fravær av typen avspasering.
+- **Lønn per dag** har bare dager med timer eller fravær, ikke helger uten registreringer. Prosjektvalget påvirker ikke lønnstallene, fordi lønnsgrunnlaget gjelder hele dagen.
 - **Tidspunkter** vises slik Ditio sender dem. «Sist oppdatert» vises i UTC.
 - **Varetransaksjoner** har ikke id-er, bare navn og prosjektnummer. En vare- eller kommentartekst med anførselstegn (") kan gjøre at den raden ikke leses riktig.
 - **Fødselsdato, adresse og pårørende** er utelatt med vilje.
@@ -123,6 +134,7 @@ Vil du beholde flere måneder eller hente flere dager på nytt, endrer du det i 
 | «Ditio API-kall feilet» med HTTP 403 | Brukeren API-klienten er knyttet til, har ikke tilgang. Prosjekter, ressurser og brukere krever administrator. | Be en administrator sjekke at API-klienten er knyttet til en administrator i Ditio |
 | *Formula.Firewall* | Personvernnivå er ikke satt eller satt til Privat | Sett begge Ditio-adressene til Organisasjon under Innstillinger for datakilde (*File → Options and settings → Data source settings*) |
 | «Kan ikke teste tilkoblingen» i Power BI-tjenesten | Testen sendes uten Ditio-pålogging | Huk av for «Hopp over testtilkobling» |
+| «Ditio API-kall feilet» fra v1/payroll-lines-extended | Lønnsgrunnlaget krever at API-klienten er knyttet til en administrator | Knytt API-klienten til en administrator, eller sett IncludePayroll til `false` |
 | En tabell har 0 rader | Firmaet bruker ikke den delen av Ditio, eller perioden er feil | Sjekk RangeStart/RangeEnd og CompanyId |
 | «Ditio API-kall feilet» med HTTP 401 | IdentityUrl og ReportingApiUrl peker på ulike miljøer (test og produksjon); en utfylt AccessToken er utløpt eller mangler `reportingapiv1`; eller én tabell tok lenger tid å laste enn påloggingen varer | Bruk produksjonsverdiene (eller testverdiene) for begge; tøm AccessToken og bruk ClientId/ClientSecret; korte ned perioden |
 

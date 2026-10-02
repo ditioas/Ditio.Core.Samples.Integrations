@@ -54,6 +54,16 @@ CHECKLIST_STATUSES = {
 MASS_UNITS = {"Ton": "tonn", "CubicMeter": "m³"}
 ITEM_TRANS_TYPES = {"Consumption": "Forbruk", "Sale": "Salg", "Purchase": "Innkjøp", "Adjustment": "Justering"}
 
+# Fravær.absenceGroup, from the absence type name (the API has no category field).
+ABSENCE_GROUP_M = """let
+            Name = if [absenceTypeName] = null then "" else Text.Lower([absenceTypeName])
+        in
+            if Text.Contains(Name, "syk") and Text.Contains(Name, "barn") then "Sykt barn"
+            else if Text.Contains(Name, "syk") or Text.Contains(Name, "egenmeld") then "Sykefravær"
+            else if Text.Contains(Name, "ferie") then "Ferie"
+            else if Text.Contains(Name, "avspas") then "Avspasering"
+            else "Annet fravær\""""
+
 TABLES = [
     {
         "name": "Prosjekter",
@@ -290,6 +300,55 @@ TABLES = [
             ("modifiedDateTime", "datetime", "Sist endret"),
             ("isDeleted", "bool", "Slettet"),
         ],
+        # The API doesn't return the absence type's category (sick, vacation, ...), only its name,
+        # so the group is read from the name. Sick leave % depends on it.
+        "derived": [("absenceGroup", "Fraværsgruppe", ABSENCE_GROUP_M,
+                     "Beregnet fra fraværstypens navn: «syk» gir Sykefravær (Sykt barn hvis navnet også inneholder "
+                     "«barn»), «egenmeld» gir Sykefravær, «ferie» gir Ferie, «avspas» gir Avspasering, ellers Annet "
+                     "fravær. Gi fraværstypene navn som følger dette, eller endre regelen i spørringen.")],
+    },
+    {
+        "name": "Lønn per dag",
+        "path": "v1/payroll-lines-extended",
+        "window": True,
+        "date_key": "transDateTime",
+        # The defaults leave out fixed-pay employees (PaidByHour); All keeps every day whatever its
+        # approval or lock state.
+        "extra_filters": {"ExportFilter": "All", "UserPayrollTypeFilter": "AllUsers"},
+        "include_parameter": "IncludePayroll",
+        "error_hint": ("Feiler bare denne tabellen, er årsaken som regel at API-klienten ikke representerer en "
+                       "administrator i Ditio, som lønnsgrunnlaget krever. Sett parameteren IncludePayroll til false "
+                       "for å laste rapporten uten lønnstall."),
+        "description": ("Lønnsgrunnlag, én rad per ansatt per dag med timer eller fravær (v1/payroll-lines-extended). "
+                        "Bare timer, ingen lønnsbeløp. Overtid utover 50 % og 100 % er ikke med."),
+        "columns": [
+            ("id", "text", "Lønnsdag-id"),
+            ("transDateTime", "datetime", "Arbeidsdato"),
+            ("userId", "text", "Bruker-id"),
+            ("userName", "text", "Navn"),
+            ("employeeNumber", "text", "hdr:EmployeeNumber"),
+            ("companyId", "text", "Lønnsfirma-id"),
+            ("qty", "number", "Timer arbeidet"),
+            ("standardQty", "number", "Normaltid"),
+            ("overtime50Qty", "number", "Overtid 50 %"),
+            ("overtime100Qty", "number", "Overtid 100 %"),
+            ("timebankQty", "number", "Til timebank"),
+            ("breakQty", "number", "hdr:BreaksTotal"),
+            ("absenceQty", "number", "hdr:AbsenceTotal"),
+            ("absenceApprovedQty", "number", "Fravær godkjent"),
+            ("absenceLockedQty", "number", "Fravær låst"),
+            ("totalVerifiedQty", "number", "Godkjent av leder (timer)"),
+            ("approvedQty", "number", "Lønnsgodkjent (timer)"),
+            ("lockedQty", "number", "Låst (timer)"),
+            ("verified", "bool", "Godkjent av leder"),
+            ("verifiedByName", "text", "hdr:VerifiedBy"),
+            ("verifiedDateTime", "datetime", "hdr:VerifiedDate"),
+            ("approved", "bool", "Lønnsgodkjent"),
+            ("approvedByName", "text", "hdr:ApprovedBy"),
+            ("approvedDateTime", "datetime", "hdr:ApprovedDate"),
+            ("modifiedDateTime", "datetime", "Sist endret"),
+            ("isDeleted", "bool", "Slettet"),
+        ],
     },
     {
         "name": "Varsler",
@@ -483,6 +542,7 @@ RELATIONSHIPS = [
     ("Timeføringer", "resourceId", "Ressurser", "id"),
     ("Timeføringer", "userId", "Brukere", "identityUserId"),
     ("Fravær", "userId", "Brukere", "identityUserId"),
+    ("Lønn per dag", "userId", "Brukere", "identityUserId"),
     ("Maskinregistreringer", "projectId", "Prosjekter", "id"),
     ("Maskinregistreringer", "machineId", "Ressurser", "id"),
     ("Fravær", "projectId", "Prosjekter", "id"),
