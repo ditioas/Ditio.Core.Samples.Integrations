@@ -42,7 +42,8 @@ let
         let
             Name = if [absenceTypeName] = null then "" else Text.Lower([absenceTypeName])
         in
-            if Text.Contains(Name, "syk") and Text.Contains(Name, "barn") then "Sykt barn"
+            if Text.Contains(Name, "barn") and (Text.Contains(Name, "syk") or Text.Contains(Name, "egenmeld")) then "Sykt barn"
+            else if Text.Contains(Name, "pleie") or Text.Contains(Name, "pårørende") then "Annet fravær"
             else if Text.Contains(Name, "syk") or Text.Contains(Name, "egenmeld") then "Sykefravær"
             else if Text.Contains(Name, "ferie") then "Ferie"
             else if Text.Contains(Name, "avspas") then "Avspasering"

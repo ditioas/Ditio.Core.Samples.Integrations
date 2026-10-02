@@ -150,7 +150,9 @@ def matrix(page, key, x, y, width, height, rows, columns, values, title, z=0):
     fields = rows + columns + values
     return _container(page, key, x, y, width, height, z, {
         "visualType": "pivotTable",
-        "projections": {"Rows": [{"queryRef": _query_ref(r), "active": True} for r in rows],
+        # Only the first row level is expanded; users drill down to the next with the matrix's arrows.
+        "projections": {"Rows": [{"queryRef": _query_ref(r), **({"active": True} if i == 0 else {})}
+                                 for i, r in enumerate(rows)],
                         "Columns": [{"queryRef": _query_ref(c), "active": True} for c in columns],
                         "Values": [{"queryRef": _query_ref(v)} for v in values]},
         "prototypeQuery": _prototype(fields),
@@ -241,7 +243,8 @@ MONTH = ("column", DATE_TABLE, "År-måned")
 
 def overview_page():
     page = "overview"
-    visuals = _header(page, "Oversikt", "Timer, godkjenning og HMS i valgt periode. Velg periode og prosjekt øverst.")
+    visuals = _header(page, "Oversikt", "Timer, godkjenning og HMS i valgt periode. Overtidsandel og sykefravær % "
+                                         "gjelder hele firmaet og påvirkes ikke av prosjektvalg.")
     visuals += _cards(page, 100, 90, [
         ("Persontimer", "Persontimer"),
         ("Maskin- og kjøretøytimer", "Maskin- og kjøretøytimer"),
@@ -315,7 +318,7 @@ def machines_page():
 def payroll_page():
     page = "payroll"
     visuals = _header(page, "Lønn og overtid", "Fra lønnsgrunnlaget: bare timer, ingen beløp. Prosjektvalget påvirker "
-                                                "ikke lønnstallene.")
+                                                "ikke tallene på denne siden.")
     visuals += _cards(page, 100, 80, [
         ("Timer arbeidet (lønn)", "Timer arbeidet"),
         ("Overtidstimer", "Overtidstimer"),
@@ -330,8 +333,8 @@ def payroll_page():
         chart(page, "share", 660, 195, 580, 240, "lineChart", MONTH, [("measure", "Overtidsandel")],
               "Overtidsandel per måned"),
         chart(page, "status", 40, 450, 400, 240, "clusteredColumnChart", MONTH,
-              [("measure", "Timer arbeidet (lønn)"), ("measure", "Lønnstimer godkjent av leder"),
-               ("measure", "Lønnstimer lønnsgodkjent"), ("measure", "Lønnstimer låst")], "Lønnsstatus per måned"),
+              [("measure", "Timer arbeidet (lønn)"), ("measure", "Lønnstimer lønnsgodkjent"),
+               ("measure", "Lønnstimer låst")], "Lønnsstatus per måned"),
         chart(page, "timebank", 450, 450, 390, 240, "clusteredColumnChart", MONTH,
               [("measure", "Timer til timebank"), ("measure", "Avspasering")], "Timebank: inn og avspasering"),
         chart(page, "position", 850, 450, 390, 240, "clusteredBarChart", ("column", "Brukere", "Stilling"),
@@ -343,8 +346,8 @@ def payroll_page():
 
 def absence_page():
     page = "absence"
-    visuals = _header(page, "Fravær", "Sykefravær er omtrentlig og avhenger av fraværstypenes navn (se Feltordliste, "
-                                       "Fraværsgruppe). Sommeren domineres av ferie.")
+    visuals = _header(page, "Fravær", "Sykefravær % er omtrentlig, avhenger av fraværstypenes navn (se Feltordliste, "
+                                       "Fraværsgruppe) og påvirkes ikke av prosjektvalg.")
     visuals += _cards(page, 100, 80, [
         ("Fraværsdager", "Fraværsdager"),
         ("Fraværstimer", "Fraværstimer"),

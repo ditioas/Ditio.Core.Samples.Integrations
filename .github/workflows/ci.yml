@@ -50,10 +50,22 @@ jobs:
       - name: Rebuild the Power BI template
         run: python3 power-bi/build/build_pbit.py
 
+      # The .pbit is compared member by member, not byte for byte: deflate output
+      # can differ between zlib builds while the content is the same.
       - name: Check the committed template matches the generator
         run: |
-          if ! git diff --exit-code --stat -- power-bi; then
-            echo "::error::power-bi/ differs from what build_pbit.py generates. Run python3 power-bi/build/build_pbit.py and commit the result."
+          hint="Run python3 power-bi/build/build_pbit.py and commit the result."
+          if ! git diff --exit-code --stat -- power-bi ':(exclude)power-bi/Ditio-PowerBI-mal.pbit'; then
+            echo "::error::power-bi/ differs from what build_pbit.py generates. $hint"
+            exit 1
+          fi
+          git show HEAD:power-bi/Ditio-PowerBI-mal.pbit > "$RUNNER_TEMP/committed.pbit"
+          if ! python3 -c 'import sys, zipfile
+          def members(path):
+              with zipfile.ZipFile(path) as z:
+                  return {i.filename: z.read(i) for i in z.infolist()}
+          sys.exit(members(sys.argv[1]) != members(sys.argv[2]))' "$RUNNER_TEMP/committed.pbit" power-bi/Ditio-PowerBI-mal.pbit; then
+            echo "::error::Ditio-PowerBI-mal.pbit differs from what build_pbit.py generates. $hint"
             exit 1
           fi
           untracked=$(git ls-files --others --exclude-standard -- power-bi)

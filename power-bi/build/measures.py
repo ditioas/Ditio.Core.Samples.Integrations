@@ -105,8 +105,9 @@ def build_measures(tables, label_of):
         ("Timer per aktiv maskindag", "Maskiner", "DIVIDE([Maskin- og kjøretøytimer], [Aktive maskindager])", HOURS,
          "Maskin- og kjøretøytimer delt på aktive maskindager. Erstatter utnyttelsesgrad, som krever "
          "tilgjengelige timer Ditio ikke har."),
-        ("Siste timeføring", "Maskiner", "MAX('Timeføringer'[Arbeidsdato])", DATE,
-         "Siste arbeidsdato med timer. Per maskin viser den maskiner som har stått stille."),
+        ("Siste timeføring", "Maskiner",
+         "CALCULATE(MAX('Timeføringer'[Arbeidsdato]), 'Ressurser'[Ressursgruppe] IN {\"Maskin\", \"Kjøretøy\"})", DATE,
+         "Siste arbeidsdato med timer på en maskin eller et kjøretøy. Per maskin viser den maskiner som har stått stille."),
         # --- Fravær
         ("Fraværstimer", "Fravær", "SUM('Fravær'[Timer])", HOURS, "Fravær i timer."),
         ("Fraværsdager", "Fravær", "COUNTROWS('Fravær')", COUNT, "Antall fraværsdager (én rad per person per dag)."),
@@ -119,17 +120,32 @@ def build_measures(tables, label_of):
         ("Andel sykefravær av fravær", "Fravær", "DIVIDE([Sykefraværstimer], [Fraværstimer])", PERCENT,
          "Sykefraværstimer delt på alt fravær."),
         # NAV: lost working time / agreed working time. Ordinary hours plus all absence from the payroll
-        # summary is the closest denominator the data has (no position % per employee).
+        # summary is the closest denominator the data has (no position % per employee). The payroll
+        # summary has no project, so the project filter is removed from both sides: sick leave is a
+        # company figure, not a project one.
         ("Sykefravær %", "Fravær",
-         "DIVIDE(\n"
-         "    [Sykefraværstimer],\n"
-         "    IF([Lønnsdager] > 0, [Normaltimer] + SUM('Lønn per dag'[Fravær totalt]), [Persontimer] + [Fraværstimer])\n"
+         "CALCULATE(\n"
+         "    DIVIDE(\n"
+         "        [Sykefraværstimer],\n"
+         "        IF([Lønnsdager] > 0, [Normaltimer] + SUM('Lønn per dag'[Fravær totalt]), [Persontimer] + [Fraværstimer])\n"
+         "    ),\n"
+         "    REMOVEFILTERS('Prosjekter')\n"
          ")", PERCENT,
          "Omtrentlig sykefravær: sykefraværstimer delt på normaltid pluss alt fravær fra lønnsgrunnlaget. Uten "
-         "lønnsgrunnlag brukes persontimer pluss fraværstimer. Avhenger av at fraværstypene heter noe med «syk»."),
+         "lønnsgrunnlag brukes persontimer pluss fraværstimer. Påvirkes ikke av prosjektvalg. Avhenger av at "
+         "fraværstypene heter noe med «syk»."),
+        # Ends at the last day with data, so it is not blank on an unfiltered card (the Dato table runs to the
+        # end of next year) and the line stops at the last month with data.
         ("Sykefravær % siste 12 mnd", "Fravær",
-         "CALCULATE([Sykefravær %], DATESINPERIOD('Dato'[Dato], MAX('Dato'[Dato]), -12, MONTH))", PERCENT,
-         "Sykefravær % for de 12 månedene fram til siste dag i utvalget. Jevner ut sesong og små team."),
+         "VAR LastDataDay = CALCULATE([Data til], REMOVEFILTERS('Dato'))\n"
+         "VAR LastDay = MIN(MAX('Dato'[Dato]), LastDataDay)\n"
+         "RETURN\n"
+         "    IF(\n"
+         "        NOT ISBLANK(LastDataDay) && MIN('Dato'[Dato]) <= LastDataDay,\n"
+         "        CALCULATE([Sykefravær %], DATESINPERIOD('Dato'[Dato], LastDay, -12, MONTH))\n"
+         "    )", PERCENT,
+         "Sykefravær % for de 12 månedene fram til siste dag i utvalget, eller siste dag med data hvis den er "
+         "tidligere. Jevner ut sesong og små team."),
         # --- Lønn og overtid
         ("Lønnsdager", "Lønn og overtid", "COUNTROWS('Lønn per dag')", COUNT,
          "Antall ansatt-dager i lønnsgrunnlaget."),
@@ -145,10 +161,13 @@ def build_measures(tables, label_of):
          "Overtidstimer delt på arbeidede timer."),
         ("Timer til timebank", "Lønn og overtid", "SUM('Lønn per dag'[Til timebank])", HOURS,
          "Timer satt inn i timebanken."),
-        ("Avspasering", "Lønn og overtid", "CALCULATE([Fraværstimer], 'Fravær'[Fraværsgruppe] = \"Avspasering\")", HOURS,
-         "Fravær i timer med fraværsgruppe Avspasering: uttak fra timebanken."),
-        ("Lønnstimer godkjent av leder", "Lønn og overtid", "SUM('Lønn per dag'[Godkjent av leder (timer)])", HOURS,
-         "Timer og fravær der alle registreringer for dagen er godkjent av leder."),
+        ("Avspasering", "Lønn og overtid",
+         "CALCULATE([Fraværstimer], 'Fravær'[Fraværsgruppe] = \"Avspasering\", REMOVEFILTERS('Prosjekter'))", HOURS,
+         "Fravær i timer med fraværsgruppe Avspasering: uttak fra timebanken. Påvirkes ikke av prosjektvalg, "
+         "som timebanken."),
+        ("Lønnstimer verifisert", "Lønn og overtid", "SUM('Lønn per dag'[Verifisert (timer)])", HOURS,
+         "Timer og fravær godkjent av leder, også på dager der ikke alt er godkjent. Inneholder fravær, så den "
+         "kan være høyere enn arbeidede timer."),
         ("Lønnstimer lønnsgodkjent", "Lønn og overtid", "SUM('Lønn per dag'[Lønnsgodkjent (timer)])", HOURS,
          "Arbeidede timer på dager som er godkjent for lønn."),
         ("Lønnstimer låst", "Lønn og overtid", "SUM('Lønn per dag'[Låst (timer)])", HOURS,

@@ -31,15 +31,15 @@ Generert av `build/build_pbit.py` – ikke rediger for hånd.
 | Maskin- og kjøretøytimer | Maskiner | Timer registrert på maskiner og kjøretøy. |
 | Aktive maskindager | Maskiner | Antall kombinasjoner av maskin (eller kjøretøy) og dag med timer. |
 | Timer per aktiv maskindag | Maskiner | Maskin- og kjøretøytimer delt på aktive maskindager. Erstatter utnyttelsesgrad, som krever tilgjengelige timer Ditio ikke har. |
-| Siste timeføring | Maskiner | Siste arbeidsdato med timer. Per maskin viser den maskiner som har stått stille. |
+| Siste timeføring | Maskiner | Siste arbeidsdato med timer på en maskin eller et kjøretøy. Per maskin viser den maskiner som har stått stille. |
 | Fraværstimer | Fravær | Fravær i timer. |
 | Fraværsdager | Fravær | Antall fraværsdager (én rad per person per dag). |
 | Godkjente fraværstimer | Fravær | Fravær i timer som er godkjent. |
 | Sykefraværstimer | Fravær | Fravær i timer med fraværsgruppe Sykefravær (egen- og sykemelding). Sykt barn er ikke med. |
 | Timer sykt barn | Fravær | Fravær i timer med fraværsgruppe Sykt barn. |
 | Andel sykefravær av fravær | Fravær | Sykefraværstimer delt på alt fravær. |
-| Sykefravær % | Fravær | Omtrentlig sykefravær: sykefraværstimer delt på normaltid pluss alt fravær fra lønnsgrunnlaget. Uten lønnsgrunnlag brukes persontimer pluss fraværstimer. Avhenger av at fraværstypene heter noe med «syk». |
-| Sykefravær % siste 12 mnd | Fravær | Sykefravær % for de 12 månedene fram til siste dag i utvalget. Jevner ut sesong og små team. |
+| Sykefravær % | Fravær | Omtrentlig sykefravær: sykefraværstimer delt på normaltid pluss alt fravær fra lønnsgrunnlaget. Uten lønnsgrunnlag brukes persontimer pluss fraværstimer. Påvirkes ikke av prosjektvalg. Avhenger av at fraværstypene heter noe med «syk». |
+| Sykefravær % siste 12 mnd | Fravær | Sykefravær % for de 12 månedene fram til siste dag i utvalget, eller siste dag med data hvis den er tidligere. Jevner ut sesong og små team. |
 | Lønnsdager | Lønn og overtid | Antall ansatt-dager i lønnsgrunnlaget. |
 | Timer arbeidet (lønn) | Lønn og overtid | Arbeidede timer i lønnsgrunnlaget, med overtid og timebank, uten fravær. |
 | Normaltimer | Lønn og overtid | Ordinære timer: arbeidede timer minus overtid og timebank. |
@@ -48,8 +48,8 @@ Generert av `build/build_pbit.py` – ikke rediger for hånd.
 | Overtidstimer | Lønn og overtid | Overtid 50 % og 100 %. Andre overtidstyper er ikke med. |
 | Overtidsandel | Lønn og overtid | Overtidstimer delt på arbeidede timer. |
 | Timer til timebank | Lønn og overtid | Timer satt inn i timebanken. |
-| Avspasering | Lønn og overtid | Fravær i timer med fraværsgruppe Avspasering: uttak fra timebanken. |
-| Lønnstimer godkjent av leder | Lønn og overtid | Timer og fravær der alle registreringer for dagen er godkjent av leder. |
+| Avspasering | Lønn og overtid | Fravær i timer med fraværsgruppe Avspasering: uttak fra timebanken. Påvirkes ikke av prosjektvalg, som timebanken. |
+| Lønnstimer verifisert | Lønn og overtid | Timer og fravær godkjent av leder, også på dager der ikke alt er godkjent. Inneholder fravær, så den kan være høyere enn arbeidede timer. |
 | Lønnstimer lønnsgodkjent | Lønn og overtid | Arbeidede timer på dager som er godkjent for lønn. |
 | Lønnstimer låst | Lønn og overtid | Arbeidede timer på dager som er låst (sendt til lønn). |
 | Antall varsler | HMS og kvalitet | Alle varsler. |
@@ -252,7 +252,7 @@ Generert av `build/build_pbit.py` – ikke rediger for hånd.
 | Låst dato | `lockedDateTime` | Låst dato |  |
 | PDF | `pdfUrl` |  |  |
 | Sist endret | `modifiedDateTime` |  |  |
-| Fraværsgruppe | `absenceGroup` |  | Beregnet fra fraværstypens navn: «syk» gir Sykefravær (Sykt barn hvis navnet også inneholder «barn»), «egenmeld» gir Sykefravær, «ferie» gir Ferie, «avspas» gir Avspasering, ellers Annet fravær. Gi fraværstypene navn som følger dette, eller endre regelen i spørringen. |
+| Fraværsgruppe | `absenceGroup` |  | Beregnet fra fraværstypens navn: «syk» eller «egenmeld» gir Sykefravær (Sykt barn hvis navnet også inneholder «barn»; pleie av og omsorg for pårørende, «pleie»/«pårørende», gir Annet fravær), «ferie» gir Ferie, «avspas» gir Avspasering, ellers Annet fravær. Gi fraværstypene navn som følger dette, eller endre regelen i spørringen. |
 
 ## Lønn per dag
 
@@ -270,15 +270,15 @@ Generert av `build/build_pbit.py` – ikke rediger for hånd.
 | Fravær totalt | `absenceQty` | Fravær totalt |  |
 | Fravær godkjent | `absenceApprovedQty` |  |  |
 | Fravær låst | `absenceLockedQty` |  |  |
-| Godkjent av leder (timer) | `totalVerifiedQty` |  |  |
+| Verifisert (timer) | `totalVerifiedQty` |  |  |
 | Lønnsgodkjent (timer) | `approvedQty` |  |  |
 | Låst (timer) | `lockedQty` |  |  |
-| Godkjent av leder | `verified` |  |  |
+| Verifisert | `verified` |  |  |
 | Verifisert av | `verifiedByName` | Verifisert av |  |
 | Verifisert dato | `verifiedDateTime` | Verifisert dato |  |
 | Lønnsgodkjent | `approved` |  |  |
-| Godkjent av | `approvedByName` | Godkjent av |  |
-| Godkjent dato | `approvedDateTime` | Godkjent dato |  |
+| Lønnsgodkjent av | `approvedByName` |  |  |
+| Lønnsgodkjent dato | `approvedDateTime` |  |  |
 | Sist endret | `modifiedDateTime` |  |  |
 
 ## Varsler

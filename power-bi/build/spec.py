@@ -58,7 +58,8 @@ ITEM_TRANS_TYPES = {"Consumption": "Forbruk", "Sale": "Salg", "Purchase": "Innkj
 ABSENCE_GROUP_M = """let
             Name = if [absenceTypeName] = null then "" else Text.Lower([absenceTypeName])
         in
-            if Text.Contains(Name, "syk") and Text.Contains(Name, "barn") then "Sykt barn"
+            if Text.Contains(Name, "barn") and (Text.Contains(Name, "syk") or Text.Contains(Name, "egenmeld")) then "Sykt barn"
+            else if Text.Contains(Name, "pleie") or Text.Contains(Name, "pårørende") then "Annet fravær"
             else if Text.Contains(Name, "syk") or Text.Contains(Name, "egenmeld") then "Sykefravær"
             else if Text.Contains(Name, "ferie") then "Ferie"
             else if Text.Contains(Name, "avspas") then "Avspasering"
@@ -303,9 +304,9 @@ TABLES = [
         # The API doesn't return the absence type's category (sick, vacation, ...), only its name,
         # so the group is read from the name. Sick leave % depends on it.
         "derived": [("absenceGroup", "Fraværsgruppe", ABSENCE_GROUP_M,
-                     "Beregnet fra fraværstypens navn: «syk» gir Sykefravær (Sykt barn hvis navnet også inneholder "
-                     "«barn»), «egenmeld» gir Sykefravær, «ferie» gir Ferie, «avspas» gir Avspasering, ellers Annet "
-                     "fravær. Gi fraværstypene navn som følger dette, eller endre regelen i spørringen.")],
+                     "Beregnet fra fraværstypens navn: «syk» eller «egenmeld» gir Sykefravær (Sykt barn hvis navnet "
+                     "også inneholder «barn»; pleie av og omsorg for pårørende, «pleie»/«pårørende», gir Annet fravær), "
+                     "«ferie» gir Ferie, «avspas» gir Avspasering, ellers Annet fravær. Gi fraværstypene navn som følger dette, eller endre regelen i spørringen.")],
     },
     {
         "name": "Lønn per dag",
@@ -337,15 +338,15 @@ TABLES = [
             ("absenceQty", "number", "hdr:AbsenceTotal"),
             ("absenceApprovedQty", "number", "Fravær godkjent"),
             ("absenceLockedQty", "number", "Fravær låst"),
-            ("totalVerifiedQty", "number", "Godkjent av leder (timer)"),
+            ("totalVerifiedQty", "number", "Verifisert (timer)"),
             ("approvedQty", "number", "Lønnsgodkjent (timer)"),
             ("lockedQty", "number", "Låst (timer)"),
-            ("verified", "bool", "Godkjent av leder"),
+            ("verified", "bool", "Verifisert"),
             ("verifiedByName", "text", "hdr:VerifiedBy"),
             ("verifiedDateTime", "datetime", "hdr:VerifiedDate"),
             ("approved", "bool", "Lønnsgodkjent"),
-            ("approvedByName", "text", "hdr:ApprovedBy"),
-            ("approvedDateTime", "datetime", "hdr:ApprovedDate"),
+            ("approvedByName", "text", "Lønnsgodkjent av"),
+            ("approvedDateTime", "datetime", "Lønnsgodkjent dato"),
             ("modifiedDateTime", "datetime", "Sist endret"),
             ("isDeleted", "bool", "Slettet"),
         ],
