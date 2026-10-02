@@ -62,6 +62,30 @@ def build_measures(tables, label_of):
         ("Antall personer", "Timer",
          "CALCULATE(DISTINCTCOUNT('Timeføringer'[Bruker-id]), 'Ressurser'[Ressursgruppe] = \"Person\")", COUNT,
          "Personer med timer i perioden."),
+        ("Låste timer", "Timer", "CALCULATE([Timer totalt], 'Timeføringer'[Låst] = TRUE())", HOURS,
+         "Timer som er låst."),
+        # The four age buckets add up to [Ikke godkjente timer]. Age is measured from today when the
+        # report is viewed, not when it was refreshed, so frozen partitions don't hold stale ages.
+        ("Ikke godkjent 0–7 dager", "Timer",
+         "CALCULATE([Ikke godkjente timer], 'Timeføringer'[Arbeidsdato] >= TODAY() - 7)", HOURS,
+         "Timer som ikke er godkjent, med arbeidsdato de siste 7 dagene (eller fram i tid)."),
+        ("Ikke godkjent 8–14 dager", "Timer",
+         "CALCULATE([Ikke godkjente timer], 'Timeføringer'[Arbeidsdato] < TODAY() - 7, "
+         "'Timeføringer'[Arbeidsdato] >= TODAY() - 14)", HOURS,
+         "Timer som ikke er godkjent, med arbeidsdato 8–14 dager tilbake."),
+        ("Ikke godkjent 15–30 dager", "Timer",
+         "CALCULATE([Ikke godkjente timer], 'Timeføringer'[Arbeidsdato] < TODAY() - 14, "
+         "'Timeføringer'[Arbeidsdato] >= TODAY() - 30)", HOURS,
+         "Timer som ikke er godkjent, med arbeidsdato 15–30 dager tilbake."),
+        ("Ikke godkjent over 30 dager", "Timer",
+         "CALCULATE([Ikke godkjente timer], 'Timeføringer'[Arbeidsdato] < TODAY() - 30)", HOURS,
+         "Timer som ikke er godkjent, med arbeidsdato mer enn 30 dager tilbake."),
+        ("Median godkjenningstid (dager)", "Timer",
+         "MEDIANX(\n"
+         "    FILTER('Timeføringer', 'Timeføringer'[Godkjent] = TRUE() && NOT ISBLANK('Timeføringer'[Godkjent dato])),\n"
+         "    INT('Timeføringer'[Godkjent dato] - 'Timeføringer'[Arbeidsdato])\n"
+         ")", "#,0",
+         "Median antall dager fra arbeidsdato til godkjenning, per godkjent timeføring."),
         # --- Maskiner
         ("Timer maskinregistreringer", "Maskiner", "SUM('Maskinregistreringer'[Timer])", HOURS,
          "Timer fra maskinregistreringer (eget skjema, ikke timeføringer)."),
@@ -70,6 +94,19 @@ def build_measures(tables, label_of):
          COUNT, "Maskiner og kjøretøy med timer i perioden."),
         ("Timer per aktiv maskin", "Maskiner", "DIVIDE([Maskintimer] + [Kjøretøytimer], [Aktive maskiner])", HOURS,
          "Maskin- og kjøretøytimer delt på antall aktive maskiner."),
+        ("Maskin- og kjøretøytimer", "Maskiner", "[Maskintimer] + [Kjøretøytimer]", HOURS,
+         "Timer registrert på maskiner og kjøretøy."),
+        ("Aktive maskindager", "Maskiner",
+         "CALCULATE(\n"
+         "    COUNTROWS(SUMMARIZE('Timeføringer', 'Timeføringer'[Ressurs-id], 'Timeføringer'[Dato])),\n"
+         "    'Ressurser'[Ressursgruppe] IN {\"Maskin\", \"Kjøretøy\"}\n"
+         ")", COUNT,
+         "Antall kombinasjoner av maskin (eller kjøretøy) og dag med timer."),
+        ("Timer per aktiv maskindag", "Maskiner", "DIVIDE([Maskin- og kjøretøytimer], [Aktive maskindager])", HOURS,
+         "Maskin- og kjøretøytimer delt på aktive maskindager. Erstatter utnyttelsesgrad, som krever "
+         "tilgjengelige timer Ditio ikke har."),
+        ("Siste timeføring", "Maskiner", "MAX('Timeføringer'[Arbeidsdato])", DATE,
+         "Siste arbeidsdato med timer. Per maskin viser den maskiner som har stått stille."),
         # --- Fravær
         ("Fraværstimer", "Fravær", "SUM('Fravær'[Timer])", HOURS, "Fravær i timer."),
         ("Fraværsdager", "Fravær", "COUNTROWS('Fravær')", COUNT, "Antall fraværsdager (én rad per person per dag)."),

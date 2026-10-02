@@ -19,9 +19,19 @@ Generert av `build/build_pbit.py` – ikke rediger for hånd.
 | Lønnsgodkjente timer | Timer | Timer som er godkjent for lønn. |
 | Andel lønnsgodkjent | Timer | Lønnsgodkjente timer delt på alle timer. |
 | Antall personer | Timer | Personer med timer i perioden. |
+| Låste timer | Timer | Timer som er låst. |
+| Ikke godkjent 0–7 dager | Timer | Timer som ikke er godkjent, med arbeidsdato de siste 7 dagene (eller fram i tid). |
+| Ikke godkjent 8–14 dager | Timer | Timer som ikke er godkjent, med arbeidsdato 8–14 dager tilbake. |
+| Ikke godkjent 15–30 dager | Timer | Timer som ikke er godkjent, med arbeidsdato 15–30 dager tilbake. |
+| Ikke godkjent over 30 dager | Timer | Timer som ikke er godkjent, med arbeidsdato mer enn 30 dager tilbake. |
+| Median godkjenningstid (dager) | Timer | Median antall dager fra arbeidsdato til godkjenning, per godkjent timeføring. |
 | Timer maskinregistreringer | Maskiner | Timer fra maskinregistreringer (eget skjema, ikke timeføringer). |
 | Aktive maskiner | Maskiner | Maskiner og kjøretøy med timer i perioden. |
 | Timer per aktiv maskin | Maskiner | Maskin- og kjøretøytimer delt på antall aktive maskiner. |
+| Maskin- og kjøretøytimer | Maskiner | Timer registrert på maskiner og kjøretøy. |
+| Aktive maskindager | Maskiner | Antall kombinasjoner av maskin (eller kjøretøy) og dag med timer. |
+| Timer per aktiv maskindag | Maskiner | Maskin- og kjøretøytimer delt på aktive maskindager. Erstatter utnyttelsesgrad, som krever tilgjengelige timer Ditio ikke har. |
+| Siste timeføring | Maskiner | Siste arbeidsdato med timer. Per maskin viser den maskiner som har stått stille. |
 | Fraværstimer | Fravær | Fravær i timer. |
 | Fraværsdager | Fravær | Antall fraværsdager (én rad per person per dag). |
 | Godkjente fraværstimer | Fravær | Fravær i timer som er godkjent. |
