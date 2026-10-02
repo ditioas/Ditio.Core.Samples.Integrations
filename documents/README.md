@@ -38,7 +38,7 @@ The curl examples below work for **either environment** — set `IDENTITY` and `
 flowchart TD
     Doc["📄 Document in your system"] --> TokenOk{"🔑 Cached token<br/>still valid?"}
     TokenOk -->|"Yes — reuse cached token"| HasId
-    TokenOk -->|"No / expired (401)"| Auth["Get a new token<br/>POST {identity}/connect/token<br/>grant_type=client_credentials · scope=ditioapiv3"]
+    TokenOk -->|"No / expired"| Auth["Get a new token<br/>POST {identity}/connect/token<br/>grant_type=client_credentials · scope=ditioapiv3"]
     Auth --> Cache["💾 Cache token until expiry<br/>(read expires_in)"]
     Cache -->|"Send Bearer token on each call"| HasId{"Know the Ditio<br/>project / work order id?"}
     HasId -->|No| Find["🔎 Discover ids<br/>GET /api/v4/integration/projects<br/>GET /api/v4/integration/tasks/project/{projectId}"]
@@ -51,7 +51,7 @@ flowchart TD
     Store -.->|"re-sync later (same section)"| Upload
 ```
 
-> **Reuse the token.** Cache it and send it on every call; only request a new one when it has expired (or a call returns `401`) — see [Step 1](#step-1--get-a-token). Don't fetch a token per request; that needlessly loads the identity server.
+> **Reuse the token.** Cache it and send it on every call; request a new one shortly before it expires — see [Step 1](#step-1--get-a-token). A `401` can also mean the API client is unavailable; see [authentication troubleshooting](../authentication/README.md#troubleshooting-a-401). Don't fetch a token per request; that needlessly loads the identity server.
 >
 > The dashed path is the re-sync case: re-upload to the **same `(project, section)`** to add to the same Info Center page. Pass `replaceExistingFilesWithSameName=true` to replace same-named files instead of keeping both.
 >
@@ -140,7 +140,7 @@ TOKEN=$(curl -s -X POST $IDENTITY/connect/token \
 
 4. Send `Authorization: Bearer $TOKEN` on every request below.
 
-> **Tokens are short-lived** — about **30 minutes** by default (configurable per client, up to 24 hours). **Cache the token and reuse it** across requests; fetch a new one shortly before it expires (read `expires_in` from the token response) or when a call returns `401`. Never request a fresh token per call.
+> **Tokens are short-lived** — about **30 minutes** by default (configurable per client, up to 24 hours). **Cache the token and reuse it** across requests; fetch a new one shortly before it expires (read `expires_in` from the token response). For a `401`, check the token and API client as described in [authentication troubleshooting](../authentication/README.md#troubleshooting-a-401). Never request a fresh token per call.
 
 ### Reusing the token (example)
 
@@ -412,7 +412,7 @@ Notes:
 
 ## Limitations & notes
 
-- **Auth & scope:** Administrator-level API client, `ditioapiv3` scope. `401` = token missing/expired; a `403`/business error = the project or work order is not in your company.
+- **Auth & scope:** Administrator-level API client, `ditioapiv3` scope. `401` can mean a missing, expired, or invalid token, or an unavailable API client; see [authentication troubleshooting](../authentication/README.md#troubleshooting-a-401). A `403`/business error means the project or work order is not in your company.
 - **Company-scoped:** you only see and act on projects/work orders owned by your company (or its company structure).
 - **Visibility:** documents are shown to active **employees assigned to the project** (the page is scoped to the project). They appear in the mobile app's Info Center, grouped under a per-project folder.
 - **Grouping is by `section`.** The durable handle is `(project, section)` — re-using it adds to the same page. There is no separate version concept; `replaceExistingFilesWithSameName` matches by filename.
