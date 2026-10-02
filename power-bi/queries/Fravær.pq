@@ -38,7 +38,18 @@ let
         {"isDeleted", type logical}
     }, "en-US"),
     WithoutDeleted = Table.SelectRows(Typed, each [isDeleted] <> true),
-    WithDateKey = Table.AddColumn(WithoutDeleted, "dateKey", each Date.From([date]), type date),
+    Derived1 = Table.AddColumn(WithoutDeleted, "absenceGroup", each
+        let
+            Name = if [absenceTypeName] = null then "" else Text.Lower([absenceTypeName])
+        in
+            if Text.Contains(Name, "barn") and (Text.Contains(Name, "syk") or Text.Contains(Name, "egenmeld")) then "Sykt barn"
+            else if Text.Contains(Name, "pleie") or Text.Contains(Name, "pårørende") then "Annet fravær"
+            else if Text.Contains(Name, "syk") or Text.Contains(Name, "egenmeld") then "Sykefravær"
+            else if Text.Contains(Name, "ferie") then "Ferie"
+            else if Text.Contains(Name, "avspas") then "Avspasering"
+            else "Annet fravær",
+        type text),
+    WithDateKey = Table.AddColumn(Derived1, "dateKey", each Date.From([date]), type date),
     // Keep [RangeStart, RangeEnd) only: incremental-refresh partitions must not overlap.
     InPeriod = Table.SelectRows(WithDateKey, each [dateKey] <> null and [dateKey] >= Date.From(RangeStart) and [dateKey] < Date.From(RangeEnd)),
     Result = InPeriod
