@@ -4,6 +4,21 @@
 
 > **New integrations should prefer the v5 Employees API** ([`../employees-v5`](../employees-v5)). v4 remains available but gets no new features.
 
+## Authorization
+
+Every v4 Users endpoint requires an Administrator, including an API client acting as its company
+administrator or emulating an administrator. Other signed-in users receive `403`.
+
+Requests can act on the caller's company and its subsidiaries and project companies. Parent,
+sibling, and unrelated companies are outside that scope. A foreign `companyId` receives `403`;
+a foreign `companyProfileId` receives `404`, matching an unknown profile. This applies to lookup,
+disable/enable, and profile or company changes submitted through PUT, PATCH, or SCIM.
+
+The unfiltered list returns only profiles in that scope. Deleting an `identityId` removes only its
+profiles in scope, preserving profiles held elsewhere. SCIM checks its resolved organization
+company and matched profile before writing; root-owned worktime arrangements require access to
+that root.
+
 ## Create
 
 ```bash
