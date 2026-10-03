@@ -19,6 +19,12 @@ profiles in scope, preserving profiles held elsewhere. SCIM checks its resolved 
 company and matched profile before writing; root-owned worktime arrangements require access to
 that root.
 
+Employee-number lookup considers only profiles in scope; an unknown number or a match only outside
+scope receives `404`. Requests that also create or replace a parent profile or employment require
+access to that parent before writing. This includes requested parent subcontractor profiles and
+project employment provisioning or restarts. Tags and supervisors require access to their metadata
+owner. Ordinary edits to an owned linked subcontractor profile can retain its connected company.
+
 ## Create
 
 ```bash
