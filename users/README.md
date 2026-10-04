@@ -23,10 +23,15 @@ A phone-number change updates the shared sign-in identity and every company prof
 Every affected profile must be in scope; otherwise the entire update receives `404` before any
 changes. The bound integration and SCIM system clients retain cross-company provisioning access.
 
+By-profile-id reads use the exact persisted profile ID. Missing, foreign, or unavailable profile
+mappings receive the same generic `404` in Enforce mode.
+
 Profile and employment saves also synchronize profiles linked through an Employee employment.
 Every synchronization destination must be in scope before writing, or the request receives `404`.
-This includes enable/disable, SCIM deactivation, and creation that updates an existing profile.
-Sharing an identity without a linked employment does not trigger this synchronization.
+This covers enable/disable, SCIM deactivation, creation that updates an existing profile,
+get-or-create role changes, and every existing destination or parent profile a company move or
+employment restart saves. Sharing an identity without a linked employment does not trigger this
+synchronization.
 
 Employee-number lookup considers only profiles in scope; an unknown number or a match only outside
 scope receives `404`. Requests that also create or replace a parent profile or employment require
