@@ -42,9 +42,11 @@ project employment provisioning or restarts. Tags and supervisors require access
 owner. Removing an inherited project tag requires access to the parent that owns its assignment;
 otherwise the entire request receives `403` before any changes. Ordinary edits to an owned linked subcontractor profile can retain its connected company.
 
-Creating a profile may borrow an avatar from another profile with the same phone number. If
-creation rewrites that file reference, its persisted company must be in scope; otherwise the whole
-request receives `403` before any changes. Reusing an unchanged avatar leaves the file reference alone.
+Creating a profile may borrow an avatar from another profile with the same phone number. A company
+move that creates a destination profile also carries the source profile's avatar. If either operation
+rewrites an avatar file reference, including the default avatar, its persisted company must be in scope;
+otherwise the whole request receives `403` before any changes. Reusing an unchanged avatar or moving
+to an existing identity profile leaves that file reference alone.
 
 ## Create
 
