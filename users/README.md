@@ -37,7 +37,9 @@ synchronization.
 
 Employment changes can also queue transaction and trip-log maintenance. Enforced requests limit
 that maintenance to records owned by your company or its descendants; unrelated records remain
-unchanged while the authorized employment update completes.
+unchanged while the authorized employment update completes. The same scope covers derived feed
+posts, price records and payroll-summary recalculation. Transport splitting leaves the original
+transaction intact when the split requires changing a record outside your scope.
 
 Employee-number lookup considers only profiles in scope; an unknown number or a match only outside
 scope receives `404`. Requests that also create or replace a parent profile or employment require
