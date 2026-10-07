@@ -43,4 +43,14 @@ curl -X PATCH $BASE_URL/api/v4/integration/users/enable/{companyProfileId}  -H "
 
 > **Prefer PATCH over PUT.** `PUT /users/{identityId}` replaces the whole user — omitted fields are wiped. Use `PATCH /users/{companyProfileId}` for partial updates. PUT and DELETE use the **identityId**, which must be URL-encoded (`auth0|abc` → `auth0%7Cabc`).
 
+## Delete
+
+```bash
+curl -X DELETE "$BASE_URL/api/v4/integration/users/{urlEncodedIdentityId}" -H "Authorization: Bearer $TOKEN"
+```
+
+Deletion returns `204 No Content` on success and `404 Not Found` when no matching profile remains. If a loaded profile or employment disappears before the SQL save, deletion returns `409 Conflict`. Reload the user's profiles before deciding whether another delete is needed; do not blindly retry.
+
+Identity and Mongo cleanup for each profile start after its SQL deletion succeeds. Cleanup failures after the SQL save can still require operational reconciliation; deletion is not atomic across stores.
+
 **C#:** [`UsersExample.cs`](UsersExample.cs).

@@ -25,7 +25,8 @@ var examples = new (string Key, string Name, Func<DitioConfig, Task> Run)[]
     ("10", "Reference data (machine types, alert types)",  ReferenceDataExample.RunAsync),
     ("11", "Crew list → Infotech ChkBox (HSE register)",   CrewListChkBoxExample.RunAsync),
     ("12", "Absences (push granted absences in)",          AbsencesExample.RunAsync),
-    ("13", "Payroll export (get payroll data out)",        PayrollExportExample.RunAsync),
+    ("13", "Data extraction — incremental sync to a local database", IncrementalSyncExample.RunAsync),
+    ("14", "Payroll export (get payroll data out)",        PayrollExportExample.RunAsync),
 };
 
 var choice = args.Length > 0 ? args[0] : null;
