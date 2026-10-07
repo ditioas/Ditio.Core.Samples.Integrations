@@ -23,6 +23,10 @@ public static class DataExtractionExample
         ("Images",                    "v1/images"),
     };
 
+    // Payroll lines (extended) is pulled separately below so we can also demonstrate reading its
+    // overtimeLines field — the same field the payroll export API returns.
+    private const string PayrollLinesExtendedPath = "v1/payroll-lines-extended";
+
     // Extraction endpoints whose records carry a `pdfUrl` link to a Ditio-generated PDF.
     private static readonly (string Name, string Path)[] PdfEndpoints =
     {
@@ -55,6 +59,37 @@ public static class DataExtractionExample
 
         // Pull the PDFs Ditio generates (checklist, alert, absence).
         await PullGeneratedPdfsAsync(api);
+
+        // Payroll lines (extended) carries everything v1/payroll-lines has, plus overtimeLines — the
+        // same field the payroll export API returns (see ../payroll-export).
+        await PrintPayrollOvertimeLinesAsync(api);
+    }
+
+    /// <summary>
+    /// Demonstrates reading `overtimeLines` off v1/payroll-lines-extended: one entry per overtime payroll
+    /// type booked on the day, instead of assuming the fixed overtime50Qty/overtime100Qty fields — a
+    /// company can configure any number of overtime types.
+    /// </summary>
+    private static async Task PrintPayrollOvertimeLinesAsync(DitioApiClient api)
+    {
+        Console.WriteLine($"\n--- Payroll lines (extended) ({PayrollLinesExtendedPath}) ---");
+
+        var page = await api.GetAsync(PayrollLinesExtendedPath);
+        if (page?.data == null)
+            return;
+
+        foreach (var summary in page.data)
+        {
+            foreach (var line in summary.overtimeLines ?? Enumerable.Empty<dynamic>())
+            {
+                // lineType: 20/30/40 = overtime levels 1/2/3 (automatic calculation). 41 = a manually
+                // registered overtime type (any number of these, freely named).
+                // overtimeType: 0 = Overtime, deducted from ordinary hours.
+                //               1 = OvertimeAddition, paid on top — never deducted.
+                string kind = line.overtimeType == 1 ? "addition (paid on top)" : "overtime (deducted)";
+                Console.WriteLine($"  {summary.userName} {summary.transDateTime}: [{line.lineType}] {line.name} ({kind}) = {line.qty}");
+            }
+        }
     }
 
     /// <summary>
