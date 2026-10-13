@@ -53,9 +53,9 @@ curl "$BASE_URL/api/v4/integration/projects/personnel?includeInactive=true" -H "
 
 Each person has `userId` (the same value as `identityId` in the [Users API](../users)), `name`,
 `companyId` (the company they work for: yours, or the subcontractor's), `role`, `roleName` and
-`isMainRole`. `name` and `companyId` are `null` for someone with no profile in your company. The
-company-wide form returns a JSON array of these project objects, ordered by project number; within
-a project, people are ordered by role, then name.
+`isMainRole`. Like Period Planning, only people with an active or upcoming employment in your
+company are listed. The company-wide form returns a JSON array of these project objects, ordered by
+project number; within a project, people are ordered by role, then name.
 
 | `role` | `roleName` (as Ditio Web shows it) |
 |---|---|
