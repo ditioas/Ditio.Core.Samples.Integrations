@@ -4,6 +4,42 @@
 
 > **New integrations should prefer the v5 Employees API** ([`../employees-v5`](../employees-v5)). v4 remains available but gets no new features.
 
+## Authorization
+
+The rules below describe the Core API contract introduced by
+[the administrator and company-scope change](https://github.com/ditioas/timestyr/pull/5876).
+
+Every v4 Users endpoint requires an Administrator or a Ditio SysOp. API clients use
+their resolved company administrator or emulated user; other signed-in users receive `403`.
+`POST /scim` is reserved for Ditio's SysOp SCIM service.
+
+Except for SysOps, requests can act on the caller's own company or a company in a
+structure that the caller's company heads. A subsidiary cannot reach its parent or
+siblings. API clients that do not emulate a user can send `x-company-id` to act
+for an allowed company; the selected company determines their reach. Clients that
+emulate a user keep that user's company and permissions instead.
+
+For callers without SysOp access:
+
+- Company-selection checks reject an out-of-scope `companyId` or `projectCompanyId`
+  with `403`. PUT checks the identity and resolved profile first, so it can return
+  `404` before reaching the company check.
+- A missing or out-of-scope company profile ID or identity ID receives `404`.
+- PUT and PATCH check the stored profile and any company or profile destination
+  changed by the request body. An unchanged linked subcontractor company can remain.
+- Employee-number lookup searches the caller's company structure, then checks the
+  selected profile's company. An out-of-scope selected profile receives `404`; a
+  number with no matching profile receives `400`.
+- An unfiltered list includes the main company and its subsidiaries for a caller
+  acting as the structure's main company; other callers get only their own company.
+- DELETE targets the identity's profiles in the caller's structure's main company
+  and project companies. It receives `403` before deletion if any targeted profile
+  is outside the caller's reach; it does not skip those profiles and partially delete
+  only the permitted ones.
+
+Phone-number changes update the shared sign-in identity and every profile that
+uses it, including profiles in other companies.
+
 ## Create
 
 ```bash
