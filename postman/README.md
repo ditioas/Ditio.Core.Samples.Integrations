@@ -14,7 +14,7 @@ A collection covering the Ditio Core integration APIs, plus **Production** and *
 ## Folders
 
 - **Auth** — integration token (`ditioapiv3`) and reporting token (`reportingapiv1`).
-- **Projects / Work orders / Documents / Machines / Reference data / Users (v4) / Employees (v5) / Certificates** — send data into Ditio.
+- **Projects / Work orders / Documents / Machines / Reference data / Users (v4) / Employees (v5) / Certificates** — send data into Ditio. **Projects** also reads who is on each project and their role (personnel).
 - **Payroll export** and **Data extraction** — read data out of Ditio (the data-extraction folder uses `reportingToken` + `reportingUrl`).
 
 ## Environments
