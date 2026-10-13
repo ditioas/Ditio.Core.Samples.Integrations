@@ -15,8 +15,11 @@ their resolved company administrator or emulated user; other signed-in users rec
 
 Except for SysOps, requests can act on the caller's own company or a company in a
 structure that the caller's company heads. A subsidiary cannot reach its parent or
-siblings. API clients configured for several companies send `x-company-id` to act
-for one of them; the selected company determines their reach.
+siblings. API clients that do not emulate a user can send `x-company-id` to act
+for an allowed company; the selected company determines their reach. Clients that
+emulate a user keep that user's company and permissions instead.
+
+For callers without SysOp access:
 
 - Company-selection checks reject an out-of-scope `companyId` or `projectCompanyId`
   with `403`. PUT checks the identity and resolved profile first, so it can return
