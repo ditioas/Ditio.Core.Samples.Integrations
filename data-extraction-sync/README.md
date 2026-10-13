@@ -29,7 +29,7 @@ These rules apply to every `v1/*` extraction endpoint used here.
 
 - **Registrations** (time, machine, absence, incident) come back as a tombstone. It has the `id`, `isDeleted`, `deletedDateTime` and `modifiedDateTime` (equal to the deletion time); the other fields are empty. Look the record up by `id`, and don't overwrite your copy with the empty fields.
 - **Projects, work orders, resources and users** come back as their last stored version with `isDeleted: true`. Their `modifiedDateTime` is the last change *before* the deletion, so use `deletedDateTime` for when it was deleted.
-- **Checklists** come back as the full record with `isDeleted: true`.
+- **Checklists** come back as the full record with `isDeleted: true`. Checklists made from a machine checklist template are not in `v1/checklist-registrations` unless you add `includeMachineChecklists=true`. When a template's type changes to or from machine checklist, its checklists move between endpoints without a deletion. See [Machine checklists](https://docs.ditio.app/guides/safety-reporting/#machine-checklists).
 - `deletedRecordCount` tells you how many deletions the page holds. `recordCount` counts both live and deleted records.
 - The same deletion can appear on more than one page or more than one run. Applying it twice must be harmless.
 
