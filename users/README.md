@@ -77,7 +77,22 @@ curl -X PATCH $BASE_URL/api/v4/integration/users/disable/{companyProfileId} -H "
 curl -X PATCH $BASE_URL/api/v4/integration/users/enable/{companyProfileId}  -H "Authorization: Bearer $TOKEN"
 ```
 
-> **Prefer PATCH over PUT.** `PUT /users/{identityId}` replaces the whole user — omitted fields are wiped. Use `PATCH /users/{companyProfileId}` for partial updates. PUT and DELETE use the **identityId**, which must be URL-encoded (`auth0|abc` → `auth0%7Cabc`).
+**Prefer PATCH for routine updates.** Both `PUT /users/{identityId}` and
+`PATCH /users/{companyProfileId}` merge supplied fields onto the stored user;
+omitted fields are not cleared by that merge. PUT still validates its required
+fields, while PATCH needs no full user body.
+
+| Body field | PUT | PATCH |
+|---|---|---|
+| Omitted | Retained in the merged user | Retained in the merged user |
+| Explicit `null` | Applied, subject to validation and service rules | Ignored |
+
+Both pass the merged user through the normal business save. Derived profile and
+employment updates and shared sign-in identity changes can still affect values
+beyond the fields you sent; omission does not isolate those effects.
+
+PUT and DELETE use the **identityId**, which must be URL-encoded (`auth0|abc` →
+`auth0%7Cabc`). PATCH uses **companyProfileId**.
 
 ## Delete
 

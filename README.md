@@ -81,15 +81,20 @@ TOKEN=$(curl -s -X POST $IDENTITY/connect/token \
 
 **Use `PATCH` for updates, not `PUT`.**
 
-- **`PATCH`** is a partial, dynamic update — send only the fields you want to change; everything else is left exactly as it was. You don't need to fetch the full object first.
-- **`PUT`** is a *full replace* — it overwrites the entire object with the body you send. **Any field you omit is wiped** (cleared or reset to its default). This is a common cause of accidental data loss during syncs.
+- **`PATCH`** is a partial, dynamic update — send only the fields you want to change. Check the entity guide for explicit `null` handling and business effects. You don't need to fetch the full object first.
+- **`PUT`** can replace the entire stored object with the body you send. On full-replace endpoints, **any field you omit is wiped** (cleared or reset to its default). This is a common cause of accidental data loss during syncs.
 
 So unless you deliberately want to replace every field, reach for **PATCH**.
 
-> **Machines are the exception.** `PUT /api/v4/integration/machines/{id}` and
+> **Machines and v4 Users are exceptions.** `PUT /api/v4/integration/machines/{id}` and
 > `PUT /api/v4/integration/machines/update/array` are preserve-on-omit: a field left out of the body
-> keeps its stored value. See [`machines/README.md`](machines/README.md). Every other entity below
-> still follows the full-replace rule above.
+> keeps its stored value. See [`machines/README.md`](machines/README.md).
+>
+> v4 Users PUT also merges supplied fields onto the stored user instead of clearing omitted fields.
+> PUT still validates its required fields and applies explicit `null`, subject to validation and
+> service rules; v4 Users PATCH ignores explicit `null`. Both use the normal business save, which
+> can also update derived fields and the shared sign-in identity. See
+> [`users/README.md`](users/README.md#update--disable).
 
 | Entity | PATCH endpoint |
 |--------|----------------|
