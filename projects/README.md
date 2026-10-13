@@ -47,15 +47,20 @@ Planning:
 
 ```bash
 curl $BASE_URL/api/v4/integration/projects/{id}/personnel                -H "Authorization: Bearer $TOKEN"   # one project
-curl $BASE_URL/api/v4/integration/projects/personnel                     -H "Authorization: Bearer $TOKEN"   # all active projects
+curl $BASE_URL/api/v4/integration/projects/personnel                     -H "Authorization: Bearer $TOKEN"   # all active projects you reach
 curl "$BASE_URL/api/v4/integration/projects/personnel?includeInactive=true" -H "Authorization: Bearer $TOKEN" # incl. inactive
 ```
 
-Each person has `userId` (the same value as `identityId` in the [Users API](../users)), `name`,
-`companyId` (the company they work for: yours, or the subcontractor's), `role`, `roleName` and
-`isMainRole`. Like Period Planning, only people with an active or upcoming employment in your
-company are listed. The company-wide form returns a JSON array of these project objects, ordered by
+You reach your own company's projects and those of every company below it in your structure: as a
+main company (where an API client usually sits), the projects in your project companies and
+subsidiaries; never a parent's or sibling's. Each project carries `projectCompanyId`, the company
+that owns it. The company-wide form returns a JSON array of these project objects, ordered by
 project number; within a project, people are ordered by role, then name.
+
+Each person has `userId` (the same value as `identityId` in the [Users API](../users)), `name`,
+`companyId` (their employer as recorded on their profile in the project's company: the
+subcontractor for subcontractor personnel), `role`, `roleName` and `isMainRole`. Like Period
+Planning, only people with an active or upcoming employment in the project's company are listed.
 
 | `role` | `roleName` (as Ditio Web shows it) |
 |---|---|
@@ -67,7 +72,7 @@ project number; within a project, people are ordered by role, then name.
 
 A project can have several people in each role. `isMainRole` is `true` only for the project
 manager in the project's `projectLeaderId` and the foreman in its `mainForemanId`. A
-missing or other-company project ID returns the same `404 Not Found` as the project lookup.
+missing project ID and one you cannot reach return the same `404 Not Found`.
 
 ## Update / delete
 
