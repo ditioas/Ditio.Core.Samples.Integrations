@@ -20,7 +20,7 @@ TOKEN=$(curl -s -X POST $IDENTITY/connect/token \
 | Work orders (WBS) | `GET $REPORTING_URL/v1/project/work-breakdown-structure` |
 | Users | `GET $REPORTING_URL/v1/user` |
 | Resources (machines) | `GET $REPORTING_URL/v1/resource` |
-| Checklists | `GET $REPORTING_URL/v1/checklist-registrations` |
+| Checklists | `GET $REPORTING_URL/v1/checklist-registrations` (add `includeMachineChecklists=true` to include machine checklists — see [Machine checklists](https://docs.ditio.app/guides/safety-reporting/#machine-checklists)) |
 | Alerts (incidents) | `GET $REPORTING_URL/v1/incident-registrations` |
 | Project transactions (time) | `GET $REPORTING_URL/v1/time-registrations` |
 | Crew-list passages (including open check-ins) | `GET $REPORTING_URL/v1/crew-list-registrations` |
