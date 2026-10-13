@@ -27,11 +27,14 @@ from pathlib import Path
 import checks
 from measures import build_measures
 from model import Labels, build_model, glossary_rows, TRANSLATIONS_DIR
-from pages import THEME, THEME_FILE, build_layout, glossary_page, start_page
+from pages import (
+    THEME, THEME_FILE, absence_page, build_layout, glossary_page, hours_page, machines_page, overview_page, payroll_page,
+    start_page,
+)
 from queries import FUNCTIONS, PARAMETERS, render_item_query, render_parameter, render_table_query
 from spec import ITEM_TABLE, TABLES
 
-VERSION = "2.2.0"
+VERSION = "2.3.0"
 
 HERE = Path(__file__).resolve().parent
 POWER_BI_DIR = HERE.parent
@@ -116,7 +119,8 @@ def main():
     model = build_model(data_queries, measures, labels)
     columns, measure_names = checks.check_model(model)
 
-    layout = build_layout([start_page(VERSION), glossary_page()])
+    layout = build_layout([start_page(VERSION), overview_page(), hours_page(), machines_page(), payroll_page(), absence_page(),
+                           glossary_page()])
     checks.check_layout(layout, columns, measure_names)
 
     query_files = {}

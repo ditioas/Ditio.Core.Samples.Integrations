@@ -30,6 +30,18 @@ def _optional_parameter(name, kind, description, required=False):
     }
 
 
+def _switch_parameter(name, default, description):
+    value = "true" if default else "false"
+    return {
+        "name": name,
+        "value": value,
+        "meta": f'IsParameterQuery=true, List={{true, false}}, DefaultValue={value}, Type="Logical", '
+                'IsParameterQueryRequired=true',
+        "result_type": "Logical",
+        "description": description,
+    }
+
+
 PARAMETERS = [
     _url_parameter("ReportingApiUrl", PRODUCTION_REPORTING_URL, TEST_REPORTING_URL,
                    "Ditio Reporting API (Data Extraction). Produksjon, eller core-api.ditio.dev/reporting for test."),
@@ -54,6 +66,9 @@ PARAMETERS = [
                         required=True),
     _optional_parameter("CompanyId", "Text",
                         "Valgfri. Last bare data registrert i dette Ditio-firmaet. La stå tom for alt API-klienten har tilgang til."),
+    _switch_parameter("IncludePayroll", True,
+                      "Last tabellen «Lønn per dag» (overtid, normaltid, timebank, sykefravær %). Krever at API-klienten "
+                      "representerer en administrator. Sett til false hvis oppdateringen feiler på lønn."),
 ]
 
 FUNCTIONS = [
@@ -201,6 +216,45 @@ def _mapped_steps(table, step):
     return lines, step
 
 
+def _derived_steps(table, step):
+    lines = []
+    for index, (new_field, _label, expression, _description) in enumerate(table.get("derived", [])):
+        name = f"Derived{index + 1}"
+        lines += [
+            f"    {name} = Table.AddColumn({step}, {m_text(new_field)}, each",
+            f"        {expression},",
+            "        type text),",
+        ]
+        step = name
+    return lines, step
+
+
+def _extract_steps(table, filters):
+    """Records = the extraction, optionally behind an on/off parameter and with a hint added to errors."""
+    call = f'DitioExtract("{table["path"]}", {filters})'
+    hint = table.get("error_hint")
+    switch = table.get("include_parameter")
+    if not hint and not switch:
+        return [f"    Records = {call},"]
+    lines = []
+    if hint:
+        lines += [
+            f"    Extracted = try {call},",
+            "    Extraction =",
+            "        if Extracted[HasError] then",
+            "            error Error.Record(Extracted[Error][Reason],",
+            f"                Extracted[Error][Message] & \" \" & {m_text(hint)}, Extracted[Error][Detail])",
+            "        else",
+            "            Extracted[Value],",
+        ]
+        call = "Extraction"
+    if switch:
+        lines.append(f"    Records = if {switch} = false then {{}} else {call},")
+    else:
+        lines.append(f"    Records = {call},")
+    return lines
+
+
 def _date_key_step(table, step):
     if "date_key" not in table:
         return [], step
@@ -215,6 +269,7 @@ def output_columns(table):
     """Columns the query returns, by api field: the spec columns, mapped columns, date key."""
     columns = [(api, kind) for api, kind, _ in table["columns"]]
     columns += [(new_field, "text") for new_field, _, _, _ in table.get("mapped", [])]
+    columns += [(new_field, "text") for new_field, _, _, _ in table.get("derived", [])]
     if "per_person" in table:
         columns.append((table["per_person"]["count_field"], "int"))
     if "date_key" in table:
@@ -224,6 +279,9 @@ def output_columns(table):
 
 def render_table_query(table):
     filters = ("DitioModifiedWindow()" if table.get("window_by_modified") else "DitioDateWindow()") if table["window"] else "null"
+    if table.get("extra_filters"):
+        extra = ", ".join(f"{name} = {m_text(value)}" for name, value in table["extra_filters"].items())
+        filters = f"{filters} & [{extra}]" if table["window"] else f"[{extra}]"
     coordinates = table.get("coordinates", {})
     derived = {f"{prefix}{axis}" for prefix in coordinates.values() for axis in ("Longitude", "Latitude")}
     raw_columns = [api for api, _, _ in table["columns"] if api not in derived] + list(coordinates)
@@ -231,7 +289,7 @@ def render_table_query(table):
     spec_columns = [(api, kind) for api, kind, _ in table["columns"]]
     lines = [
         "let",
-        f'    Records = DitioExtract("{table["path"]}", {filters}),',
+        *_extract_steps(table, filters),
         f"    Columns = {{{raw_names}}},",
         "    Raw =",
         "        if List.IsEmpty(Records) then",
@@ -270,6 +328,8 @@ def render_table_query(table):
     step = "WithoutDeleted"
     mapped, step = _mapped_steps(table, step)
     lines += mapped
+    derived_lines, step = _derived_steps(table, step)
+    lines += derived_lines
     date_key, step = _date_key_step(table, step)
     lines += date_key
     if table["window"]:
