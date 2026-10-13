@@ -52,8 +52,10 @@ curl "$BASE_URL/api/v4/integration/projects/personnel?includeInactive=true" -H "
 ```
 
 Each person has `userId` (the same value as `identityId` in the [Users API](../users)), `name`,
-`companyId` (their company; differs from yours for subcontractors), `role`, `roleName` and
-`isMainRole`:
+`companyId` (the company they work for: yours, or the subcontractor's), `role`, `roleName` and
+`isMainRole`. `name` and `companyId` are `null` for someone with no profile in your company. The
+company-wide form returns a JSON array of these project objects, ordered by project number; within
+a project, people are ordered by role, then name.
 
 | `role` | `roleName` (as Ditio Web shows it) |
 |---|---|
@@ -63,8 +65,8 @@ Each person has `userId` (the same value as `identityId` in the [Users API](../u
 | `Bas` | Bas |
 | `User` | Bruker (on the personnel list without a role) |
 
-A project can have several people in each role. `isMainRole` marks the one main project manager
-and the one main foreman, the people in the project's `projectLeaderId` and `mainForemanId`. A
+A project can have several people in each role. `isMainRole` is `true` only for the project
+manager in the project's `projectLeaderId` and the foreman in its `mainForemanId`. A
 missing or other-company project ID returns the same `404 Not Found` as the project lookup.
 
 ## Update / delete
