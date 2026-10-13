@@ -40,6 +40,40 @@ Looking up a missing project ID and looking up a project that is not available t
 company both return the same `404 Not Found` response. Callers should treat either response as an
 unavailable project without trying to distinguish the reason.
 
+## Personnel and roles
+
+Who is on a project's personnel list, and the role each person has there, as set up in Period
+Planning:
+
+```bash
+curl $BASE_URL/api/v4/integration/projects/{id}/personnel                -H "Authorization: Bearer $TOKEN"   # one project
+curl $BASE_URL/api/v4/integration/projects/personnel                     -H "Authorization: Bearer $TOKEN"   # all active projects
+curl "$BASE_URL/api/v4/integration/projects/personnel?includeInactive=true" -H "Authorization: Bearer $TOKEN" # incl. inactive
+```
+
+Same company convention as the data-extraction endpoints: a parent company (where an API client
+usually sits) gets the projects of its project companies and subsidiaries; any other company only
+its own. Add `?excludeDataFromSubsidiaries=true` to leave subsidiaries out, or `?companyId=<id>` for
+one company. Each project carries `projectCompanyId`, the company that owns it. The company-wide form returns a JSON array of these project objects, ordered by
+project number; within a project, people are ordered by role, then name.
+
+Each person has `userId` (the same value as `identityId` in the [Users API](../users)), `name`,
+`companyId` (their employer as recorded on their profile in the project's company: the
+subcontractor for subcontractor personnel), `role`, `roleName` and `isMainRole`. Like Period
+Planning, only people with an active or upcoming employment in the project's company are listed.
+
+| `role` | `roleName` (as Ditio Web shows it) |
+|---|---|
+| `ProjectManager` | Anleggsleder (the *Project manager* role on a user's Projects tab) |
+| `Hse` | Hms |
+| `Foreman` | Formann |
+| `Bas` | Bas |
+| `User` | Bruker (on the personnel list without a role) |
+
+A project can have several people in each role. `isMainRole` is `true` only for the project
+manager in the project's `projectLeaderId` and the foreman in its `mainForemanId`. A
+missing project ID and one you cannot reach return the same `404 Not Found`.
+
 ## Update / delete
 
 ```bash

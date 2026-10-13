@@ -15,7 +15,7 @@ Example integrations for the **Ditio Core API** — one folder per integration k
 
 **Send data into Ditio** (create / update)
 
-- [`projects`](projects/README.md) — projects
+- [`projects`](projects/README.md) — projects, and who is on each project with their role (Anleggsleder, Hms, Formann, Bas)
 - [`work-orders`](work-orders/README.md) — work orders (tasks)
 - [`machines`](machines/README.md) — machines & equipment
 - [`reference-data`](reference-data/README.md) — machine types, alert types (lookups you need first)
