@@ -40,6 +40,33 @@ Looking up a missing project ID and looking up a project that is not available t
 company both return the same `404 Not Found` response. Callers should treat either response as an
 unavailable project without trying to distinguish the reason.
 
+## Personnel and roles
+
+Who is on a project's personnel list, and the role each person has there, as set up in Period
+Planning:
+
+```bash
+curl $BASE_URL/api/v4/integration/projects/{id}/personnel                -H "Authorization: Bearer $TOKEN"   # one project
+curl $BASE_URL/api/v4/integration/projects/personnel                     -H "Authorization: Bearer $TOKEN"   # all active projects
+curl "$BASE_URL/api/v4/integration/projects/personnel?includeInactive=true" -H "Authorization: Bearer $TOKEN" # incl. inactive
+```
+
+Each person has `userId` (the same value as `identityId` in the [Users API](../users)), `name`,
+`companyId` (their company; differs from yours for subcontractors), `role`, `roleName` and
+`isMainRole`:
+
+| `role` | `roleName` (as Ditio Web shows it) |
+|---|---|
+| `ProjectManager` | Anleggsleder (the *Project manager* role on a user's Projects tab) |
+| `Hse` | Hms |
+| `Foreman` | Formann |
+| `Bas` | Bas |
+| `User` | Bruker (on the personnel list without a role) |
+
+A project can have several people in each role. `isMainRole` marks the one main project manager
+and the one main foreman, the people in the project's `projectLeaderId` and `mainForemanId`. A
+missing or other-company project ID returns the same `404 Not Found` as the project lookup.
+
 ## Update / delete
 
 ```bash

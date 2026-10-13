@@ -25,6 +25,13 @@ public static class ProjectsExample
         // Look up by project number.
         await api.GetAsync("api/v4/integration/projects/by-project-number/SAMPLE-P-001");
 
+        // Who is on the project, and their role there (ProjectManager, Hse, Foreman, Bas or User).
+        if (projectId is not null)
+            await api.GetAsync($"api/v4/integration/projects/{projectId}/personnel");
+
+        // The same for every active project in the company, in one call.
+        await api.GetAsync("api/v4/integration/projects/personnel");
+
         // Partial update (PATCH only changes the fields you send).
         if (projectId is not null)
             await api.PatchAsync($"api/v4/integration/projects/{projectId}", new { name = "Sample project (updated)" });
