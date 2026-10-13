@@ -29,7 +29,7 @@ public static class ProjectsExample
         if (projectId is not null)
             await api.GetAsync($"api/v4/integration/projects/{projectId}/personnel");
 
-        // The same for every active project you reach (your company and its project companies and subsidiaries), in one call.
+        // The same for every active project in one call; a parent company also gets its project companies and subsidiaries.
         await api.GetAsync("api/v4/integration/projects/personnel");
 
         // Partial update (PATCH only changes the fields you send).

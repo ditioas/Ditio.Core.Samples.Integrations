@@ -47,14 +47,14 @@ Planning:
 
 ```bash
 curl $BASE_URL/api/v4/integration/projects/{id}/personnel                -H "Authorization: Bearer $TOKEN"   # one project
-curl $BASE_URL/api/v4/integration/projects/personnel                     -H "Authorization: Bearer $TOKEN"   # all active projects you reach
+curl $BASE_URL/api/v4/integration/projects/personnel                     -H "Authorization: Bearer $TOKEN"   # all active projects
 curl "$BASE_URL/api/v4/integration/projects/personnel?includeInactive=true" -H "Authorization: Bearer $TOKEN" # incl. inactive
 ```
 
-You reach your own company's projects and those of every company below it in your structure: as a
-main company (where an API client usually sits), the projects in your project companies and
-subsidiaries; never a parent's or sibling's. Each project carries `projectCompanyId`, the company
-that owns it. The company-wide form returns a JSON array of these project objects, ordered by
+Same company convention as the data-extraction endpoints: a parent company (where an API client
+usually sits) gets the projects of its project companies and subsidiaries; any other company only
+its own. Add `?excludeDataFromSubsidiaries=true` to leave subsidiaries out, or `?companyId=<id>` for
+one company. Each project carries `projectCompanyId`, the company that owns it. The company-wide form returns a JSON array of these project objects, ordered by
 project number; within a project, people are ordered by role, then name.
 
 Each person has `userId` (the same value as `identityId` in the [Users API](../users)), `name`,
