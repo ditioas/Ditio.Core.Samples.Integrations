@@ -18,8 +18,9 @@ structure that the caller's company heads. A subsidiary cannot reach its parent 
 siblings. API clients configured for several companies send `x-company-id` to act
 for one of them; the selected company determines their reach.
 
-- An out-of-scope `companyId` in the body or query, including `projectCompanyId`,
-  receives `403`.
+- Company-selection checks reject an out-of-scope `companyId` or `projectCompanyId`
+  with `403`. PUT checks the identity and resolved profile first, so it can return
+  `404` before reaching the company check.
 - A missing or out-of-scope company profile ID or identity ID receives `404`.
 - PUT and PATCH check the stored profile and any company or profile destination
   changed by the request body. An unchanged linked subcontractor company can remain.
