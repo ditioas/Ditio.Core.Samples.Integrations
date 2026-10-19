@@ -13,11 +13,12 @@ public static class DocumentsExample
     {
         var api = new DitioApiClient(cfg.BaseUrl, cfg.Scope, new DitioTokenProvider(cfg));
 
-        // Ensure a project to attach to.
+        // Ensure a project to attach to. Its project number is used for the by-project-number calls below.
+        const string projectNumber = "SAMPLE-P-001";
         var project = await api.PostAsync("api/v4/integration/projects", new
         {
             companyId = cfg.CompanyId,
-            projectNumber = "SAMPLE-P-001",
+            projectNumber,
             name = "Sample project",
             active = true,
         });
@@ -56,15 +57,16 @@ public static class DocumentsExample
                 File.Delete(downloadPath);
         }
 
-        // Remove the document we just uploaded.
+        // Remove the document we just uploaded. Download and delete by Ditio's fileReferenceId take the
+        // Ditio project id; there is no by-project-number variant of these two.
         if (fileReferenceId is not null)
             await api.DeleteAsync($"api/v4/integration/projects/{projectId}/documents/{fileReferenceId}");
 
         // --- By project number, with folders: section paths --------------------------------------------
         // Every level of 'section' but the last is a folder; the last is the page that holds the documents
-        // (at most 10 levels). Missing levels are created, existing ones reused. A one-level section, like
-        // 'Drawings' above, is unchanged. Escape the path: it is a query value.
-        const string projectNumber = "SAMPLE-P-001";
+        // (at most 10 levels, 400 when deeper; 409 when a level would have to be both a folder and a page).
+        // Missing levels are created, existing ones reused. A one-level section, like 'Drawings' above, is a
+        // page directly in the project's folder. Escape the path: it is a query value.
         const string sectionPath = "Dokumenter/Tillegg og endringer/Endringsmeldinger";
         var byNumber = $"api/v4/integration/projects/by-project-number/{Uri.EscapeDataString(projectNumber)}/documents";
 
@@ -85,33 +87,44 @@ public static class DocumentsExample
             $"{byNumber}?section={Uri.EscapeDataString(sectionPath)}&fileName={Uri.EscapeDataString(Path.GetFileName(tempFile))}");
 
         // --- Your own ids: mirror a folder tree (e.g. SharePoint item ids) -----------------------------
+        // The same tree as above, Dokumenter/Tillegg og endringer/Endringsmeldinger, but addressed by your ids.
+        // PUT body: { name (required), parentSectionId (omit = directly in the project's folder), isFolder,
+        // description (omit = keep the current text) }. The parent must exist (404) and be a folder (409).
         // Sending the same sectionId again with a new name or parentSectionId renames or moves the section.
-        // Sections by id and sections by path are separate trees; a sync uses one or the other.
+        // Sections by id and sections by path are separate: a page created by id is never reached by a path.
         await api.PutAsync($"{byNumber}/sections/sp-dokumenter", new
         {
             name = "Dokumenter",
             isFolder = true,
-            description = "Project documents mirrored from the document system.",
+        });
+        await api.PutAsync($"{byNumber}/sections/sp-tillegg", new
+        {
+            name = "Tillegg og endringer",
+            parentSectionId = "sp-dokumenter",
+            isFolder = true,
+            description = "Change orders and change notices",
         });
         await api.PutAsync($"{byNumber}/sections/sp-meldinger", new
         {
             name = "Endringsmeldinger",
-            parentSectionId = "sp-dokumenter",
-            isFolder = false,
+            parentSectionId = "sp-tillegg",
         });
 
-        // Upload exactly one file with your fileId; uploading the same fileId again replaces the document
-        // wherever it is on the project.
+        // Upload exactly one file with your fileId (400 otherwise); uploading the same fileId again replaces the
+        // document wherever it is on the project. Don't send both section and sectionId (400).
         await api.UploadFilesAsync($"{byNumber}?sectionId=sp-meldinger&fileId=sp-file-0042", tempFile);
 
-        // Delete the document by your file id, then the folder with everything in it (204, or 404).
+        // Delete the document by your file id, then the top folder with everything under it and their files
+        // (each 204, or 404 when nothing has that id).
         await api.DeleteAsync($"{byNumber}/files/sp-file-0042");
         await api.DeleteAsync($"{byNumber}/sections/sp-dokumenter");
 
         File.Delete(tempFile);
 
         // The work-order endpoints are identical — swap 'projects' for 'tasks' and use the task id (its
-        // documents nest under the parent project's folder; section defaults to the work order's number):
+        // documents nest under the parent project's folder; section defaults to the work order's number).
+        // On a work order 'section' is always one level (a '/' is part of the page name), and section paths,
+        // sectionId and fileId are project-only:
         //   POST   api/v4/integration/tasks/{taskId}/documents
         //   GET    api/v4/integration/tasks/{taskId}/documents
         //   GET    api/v4/integration/tasks/{taskId}/documents/{fileReferenceId}
