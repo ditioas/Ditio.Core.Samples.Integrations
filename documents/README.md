@@ -11,11 +11,12 @@ Push documents (PDF, Word, images, …) to Ditio **projects** and **work orders*
 | **Project** | A top-level job in Ditio. Has a Ditio **id** (a string like `65f1a2b3c4d5e6f7a8b9c0d1`) and a human **project number** (e.g. `P-2025-001`). |
 | **Work order** (called a *task* in the API) | A unit of work inside a project. Also has a Ditio **id**. |
 | **Document** | Any file (PDF, Word, image, …) you push to a project or work order. It becomes a document on an Info Center page, visible to that project's members on mobile. |
-| **Section** | Optional name that groups a project's documents into a page (e.g. `Drawings`, `Contracts`). Re-using the same `(project, section)` adds to the same page. Omit it and documents land on a default **"Documents"** page. |
-| **`fileReference.id`** | The id Ditio gives back when you push a document. Save it — you need it to download or delete that document later. |
+| **Section** | Optional name that groups a project's documents into a page (e.g. `Drawings`, `Contracts`). Re-using the same `(project, section)` adds to the same page. Omit it and documents land on a default **"Documents"** page. A section can be a **path** — `Dokumenter/Tillegg og endringer/Endringsmeldinger` — to build folders inside the project's folder ([Step 7](#step-7--folders-inside-the-project-section-paths)). |
+| **`fileReference.id`** | The id Ditio gives back when you push a document. Save it — you need it to download or delete that document later — or delete by section and file name instead, or use your own ids ([Step 8](#step-8--mirror-your-folder-tree-with-your-own-ids)). |
 | **`pageExternalId`** | Returned on upload; the stable handle of the Info Center page the documents landed on. |
+| **Your own ids** (`sectionId`, `fileId`) | Optional: address folders, pages and documents by the ids your own system already has (e.g. SharePoint item ids), so renames and moves follow ([Step 8](#step-8--mirror-your-folder-tree-with-your-own-ids)). |
 
-You push a document using the **Ditio id** of a project or work order. You don't know those ids yet — **steps 2 and 3 below show how to find them.**
+You push a document using the **Ditio id** of a project or work order — **steps 2 and 3 below show how to find them** — or, for projects, by its **project number**: upload, list, describe and the delete-by-name / delete-by-your-id endpoints also exist under `/api/v4/integration/projects/by-project-number/{projectNumber}/documents…`, so you never need to look up or store Ditio's project id.
 
 > **Auth:** every request needs a Bearer token with the `ditioapiv3` scope (step 1). Your API client must have **Administrator** access, and can only see/act on projects in your own company.
 
@@ -254,14 +255,17 @@ More work-order endpoints: [`../work-orders`](../work-orders).
 
 ```
 POST /api/v4/integration/projects/{id}/documents
+POST /api/v4/integration/projects/by-project-number/{projectNumber}/documents
 ```
 
-Send one or more files as `multipart/form-data`. Query parameters (both optional):
+Send one or more files as `multipart/form-data`. Query parameters (all optional):
 
 | Param | Effect |
 |-------|--------|
-| `section` | Groups the documents onto a named page under the project's document folder (e.g. `Drawings`). Re-use the same value to add more documents to that page. Omit it → a default **"Documents"** page. |
+| `section` | Groups the documents onto a named page under the project's document folder (e.g. `Drawings`). Re-use the same value to add more documents to that page. Omit it → a default **"Documents"** page. Separate levels with `/` to put the page inside folders — see [Step 7](#step-7--folders-inside-the-project-section-paths). |
 | `replaceExistingFilesWithSameName` | When `true`, documents already on the page with the same filename are replaced (use on re-sync to avoid duplicates). |
+| `sectionId` | Instead of `section`: your own id of a page created in [Step 8](#step-8--mirror-your-folder-tree-with-your-own-ids). |
+| `fileId` | Your own id for the document (upload exactly one file with it). Uploading the same `fileId` again replaces the document, wherever on the project it was. |
 
 **Upload restrictions:** keep the complete multipart request, including its boundaries and fields, below
 30,000,000 bytes. Larger requests return `413` before file validation. Send larger batches as separate requests.
@@ -332,7 +336,35 @@ GET /api/v4/integration/projects/{id}/documents
 GET /api/v4/integration/tasks/{id}/documents
 ```
 
-Returns the section page(s) — each with `section`, `pageExternalId`, and a `files` array of `{ fileReferenceId, name }`. (For a work order, returns its own section page.)
+```
+GET /api/v4/integration/projects/by-project-number/{projectNumber}/documents
+```
+
+Returns the section page(s) at every depth — each with `section` (its full path, e.g. `Dokumenter/Tillegg og endringer/Endringsmeldinger`), `sectionId` (your id, when created with one), `pageExternalId`, and a `files` array of `{ fileReferenceId, name, fileId }`. (For a work order, returns its own section page.)
+The path is built from the titles of the levels, so a title that itself contains `/` (renamed in Ditio Web, or a work
+order's name) reads as an extra level — use `sectionId` or `pageExternalId` when you need an exact handle.
+For example, a page created by your id (`sp-meldinger`, inside your folder `sp-dokumenter`) next to one created by a path:
+
+```json
+[
+  {
+    "section": "Dokumenter/Endringsmeldinger",
+    "sectionId": "sp-meldinger",
+    "pageExternalId": "int-projdocs:65f1a2b3c4d5e6f7a8b9c0d1:id:sp-meldinger",
+    "files": [
+      { "fileReferenceId": "66b1a2c3d4e5f6a7b8c9d0e4", "name": "Endringsmelding - 01.docx", "fileId": "sp-file-0042" }
+    ]
+  },
+  {
+    "section": "Dokumenter/Tillegg og endringer/Endringsmeldinger",
+    "sectionId": null,
+    "pageExternalId": "int-projdocs:65f1a2b3c4d5e6f7a8b9c0d1:dokumenter/tillegg-og-endringer/endringsmeldinger",
+    "files": [
+      { "fileReferenceId": "66b1a2c3d4e5f6a7b8c9d0e3", "name": "Endringsmelding - 01.docx", "fileId": null }
+    ]
+  }
+]
+```
 
 **Download a document** (use the `fileReferenceId` from upload/list):
 
@@ -361,9 +393,25 @@ DELETE /api/v4/integration/tasks/{id}/documents/{fileReferenceId}
 
 Returns `204 No Content`.
 
-Deleting through this endpoint removes **both** the file and its entry on the page. `DELETE /api/file/{id}`
-and `DELETE /api/filereference/{id}` also remove the entry now, but prefer the endpoint above — it is the
-documented one and it is scoped to the project you name.
+**Delete by section and file name** — no Ditio id needed:
+
+```
+DELETE /api/v4/integration/projects/{id}/documents?section=Dokumenter/Tegninger&fileName=Plan-A1.pdf
+DELETE /api/v4/integration/projects/by-project-number/{projectNumber}/documents?section=Dokumenter/Tegninger&fileName=Plan-A1.pdf
+```
+
+```bash
+curl -X DELETE "$BASE_URL/api/v4/integration/projects/by-project-number/P-2025-001/documents?section=Dokumenter/Tegninger&fileName=Plan-A1.pdf" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+Removes every document with that name on that page (the name matches case-insensitively, like
+`replaceExistingFilesWithSameName`). Returns `204`, or `404` when the section or the document is not there.
+Omit `section` for the default "Documents" page.
+
+Deleting through these endpoints removes **both** the file and its entry on the page. `DELETE /api/file/{id}`
+and `DELETE /api/filereference/{id}` also remove the entry now, but prefer the endpoints above — they are the
+documented ones and they are scoped to the project you name.
 
 ---
 
@@ -376,6 +424,7 @@ tell what a folder covers before opening it.
 ```
 PATCH /api/v4/integration/projects/{id}/documents
 PATCH /api/v4/integration/projects/{id}/documents?section=Drawings
+PATCH /api/v4/integration/projects/by-project-number/{projectNumber}/documents?section=Drawings
 ```
 
 Omit `section` to describe the project's **document folder**; name one to describe that **section page**.
@@ -407,6 +456,126 @@ Notes:
   here overwrites what they typed, and theirs overwrites yours. Send the full text you want shown.
 - Send `null` or `""` to clear it.
 - **Limits:** up to 10 000 characters and a 64 KB request body; longer is rejected with `400`.
+- **Any level of a path** can be described: `?section=Dokumenter/Tillegg og endringer` describes that folder,
+  `?section=Dokumenter/Tillegg og endringer/Endringsmeldinger` that page.
+
+```bash
+curl -X PATCH "$BASE_URL/api/v4/integration/projects/by-project-number/P-2025-001/documents?section=Dokumenter/Tillegg%20og%20endringer" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"description": "Change orders and change notices for this project."}'
+```
+
+---
+
+## Step 7 — Folders inside the project (section paths)
+
+Mirror a folder structure by sending the folders as a path in `section`, levels separated by `/`:
+
+```bash
+curl -X POST "$BASE_URL/api/v4/integration/projects/by-project-number/P-2025-001/documents?section=Dokumenter/Tillegg%20og%20endringer/Endringsmeldinger" \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "file=@/path/to/Endringsmelding - 01.docx"
+```
+
+Ditio creates whatever is missing and reuses what exists:
+
+```
+📁  P-2025-001 - Highway E6            (project folder)
+    └── 📁 Dokumenter                  (folder)
+        └── 📁 Tillegg og endringer    (folder)
+            └── 📑 Endringsmeldinger   (page — the last level)
+                  └── 📎 Endringsmelding - 01.docx
+```
+
+- **Every level but the last is a folder; the last is the page** that holds the documents.
+- **A level holds either documents or sub-sections.** A folder can contain both folders and pages, but
+  documents sit on pages. So a path *through* a level that already holds documents, or *ending at* a level
+  that holds sub-sections, is rejected with `409` — put those documents on a page one level down, for example
+  `Dokumenter/Tillegg og endringer/Dokumenter`.
+- **Levels are trimmed and blank ones ignored** — `Dokumenter / Tegninger` and `/Dokumenter//Tegninger/` are the same path.
+  Matching is by name, ignoring case and punctuation (`Tegninger og modeller` = `tegninger-og-modeller`).
+- **At most 10 levels.** Deeper paths are rejected with `400`.
+- **A one-level section is unchanged** — `section=Drawings` reaches the same page it always has.
+- **Renaming a folder in your system means a new path**, which Ditio sees as a new folder. If you need renames and
+  moves to follow, use your own ids (Step 8).
+
+---
+
+## Step 8 — Mirror your folder tree with your own ids
+
+If your system gives every folder and file a stable id — SharePoint does, through Microsoft Graph — address
+them by those ids. Then a rename or a move is just the same id with a new name or parent, and nothing has to
+be re-uploaded. You never store a Ditio id.
+
+**Create or update a section** (a folder, or a page that holds documents):
+
+```
+PUT /api/v4/integration/projects/{id}/documents/sections/{sectionId}
+PUT /api/v4/integration/projects/by-project-number/{projectNumber}/documents/sections/{sectionId}
+```
+
+```bash
+# Folders: Dokumenter → Tillegg og endringer
+curl -X PUT "$BASE_URL/api/v4/integration/projects/by-project-number/P-2025-001/documents/sections/sp-dokumenter" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"name": "Dokumenter", "isFolder": true}'
+curl -X PUT "$BASE_URL/api/v4/integration/projects/by-project-number/P-2025-001/documents/sections/sp-tillegg" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"name": "Tillegg og endringer", "parentSectionId": "sp-dokumenter", "isFolder": true, "description": "Change orders and change notices"}'
+# Page that holds documents
+curl -X PUT "$BASE_URL/api/v4/integration/projects/by-project-number/P-2025-001/documents/sections/sp-meldinger" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"name": "Endringsmeldinger", "parentSectionId": "sp-tillegg"}'
+```
+
+| Field | |
+|-------|---|
+| `name` | Required. The name shown in the app. |
+| `parentSectionId` | Your id of the parent folder. Omit it to place the section directly in the project's folder. The parent must already exist (`404`) and be a folder (`409`). |
+| `isFolder` | `true` for a folder (holds sections), `false`/omitted for a page (holds documents). A section cannot change kind (`409`) — delete and recreate it. |
+| `description` | Optional guidance text, as in [Step 6](#step-6--describe-a-folder-or-section). Omit it to leave the current text; `""` clears it. |
+
+Returns `{ sectionId, name, parentSectionId, isFolder, description }`. Sending the same `sectionId` again with a
+new `name` or `parentSectionId` **renames or moves** the section, with everything in it. A move into the
+section's own subtree is rejected with `400`.
+
+**Upload to it, with your file id:**
+
+```bash
+curl -X POST "$BASE_URL/api/v4/integration/projects/by-project-number/P-2025-001/documents?sectionId=sp-meldinger&fileId=sp-file-0042" \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "file=@/path/to/Endringsmelding - 01.docx"
+```
+
+Upload exactly one file when you pass `fileId`. Uploading the same `fileId` again — a new version, or the file
+moved to another folder — replaces the document wherever it was on the project. Uploading to a folder's
+`sectionId` is rejected with `409`.
+
+**Delete:**
+
+```
+DELETE /api/v4/integration/projects/{id}/documents/files/{fileId}          → the document (204, or 404)
+DELETE /api/v4/integration/projects/{id}/documents/sections/{sectionId}    → the section, everything in it, and their files (204, or 404)
+```
+
+Both also exist under `by-project-number/{projectNumber}`:
+
+```bash
+curl -X DELETE "$BASE_URL/api/v4/integration/projects/by-project-number/P-2025-001/documents/files/sp-file-0042" \
+  -H "Authorization: Bearer $TOKEN"
+curl -X DELETE "$BASE_URL/api/v4/integration/projects/by-project-number/P-2025-001/documents/sections/sp-dokumenter" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+> **Mapping a SharePoint library.** Walk Graph's delta (`/drives/{drive-id}/root/delta`): for each folder, `PUT`
+> a section with the item's `id` and its `parentReference.id`; for each file, upload it with `fileId` = the
+> item's `id` to a page section; for each `deleted` item, `DELETE` it by id. A SharePoint folder can hold files
+> *and* subfolders; in Ditio, files sit on pages, so give such a folder's own files a page inside it (for
+> example a page named like the folder, with its own `sectionId`).
+
+Section ids and section paths are separate: a page you create by id is never reached by a path, and the other
+way round.
 
 ---
 
@@ -421,11 +590,23 @@ Notes:
 - **An upload either attaches every document or fails.** `successful: true` means the documents really are on
   the page; if one could not be attached the call returns an error instead, so you can simply retry — there is
   no need to compare `infoPageFiles` against what you sent.
-- **Dates** are ISO 8601 (`2026-06-05T08:10:25Z`); **IDs** are strings (MongoDB ObjectIds).
+- **Dates** are ISO 8601 (`2026-06-05T08:10:25Z`); **IDs** are strings (MongoDB ObjectIds). Your own
+  `sectionId`/`fileId` can be any string up to 256 characters.
+- **Project numbers** resolve within your own company. A number shared by several projects resolves to the one
+  active project; if several match and none or more than one is active, the call is rejected with `400`. An
+  unknown number is `404`.
+
+### Changes (October 2026)
+
+- `section` is now a path: a `/` separates levels. Before, `section=A/B` made one page named `A/B`; now it makes
+  folder `A` with page `B`. One-level sections are unchanged.
+- `GET …/documents` now lists pages at every depth, and each page's `section` is its full path. Each page also
+  carries `sectionId`, and each file `fileId`.
+- New: project-number addressing, delete by section and file name, and sections and documents by your own ids.
 
 ---
 
 ## Run it
 
-- **C#:** [`DocumentsExample.cs`](DocumentsExample.cs) — uploads to a project, lists, then deletes (work-order variant in comments).
-- **Postman:** import [`../postman`](../postman) (collection + Production/Test environments) — the **Documents** folder covers upload/list/download/delete for projects and work orders.
+- **C#:** [`DocumentsExample.cs`](DocumentsExample.cs) — uploads to a project, lists, then deletes (work-order variant in comments); then, by project number, uploads to a section path and deletes it by name, and mirrors a folder and page with your own ids (upload with `fileId`, delete by `fileId`, delete the section).
+- **Postman:** import [`../postman`](../postman) (collection + Production/Test environments) — the **Documents** folder covers upload/list/download/delete for projects and work orders, plus section paths by project number, delete by name, and sections and documents by your own ids.

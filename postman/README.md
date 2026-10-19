@@ -27,4 +27,6 @@ A collection covering the Ditio Core integration APIs, plus **Production** and *
 
 Lookup/create requests auto-fill `projectId` / `taskId` / `machineId` / `fileReferenceId` from the response, so you can run a folder top-to-bottom.
 
+The **Documents** folder's by-project-number requests use `projectNumber` plus `sectionPath` (a `/`-separated folder path), `fileName` (filled by the section-path upload) and your own ids `folderSectionId` / `sectionId` / `fileId` — set these to your system's values.
+
 > **Prefer PATCH over PUT** — PUT replaces the whole object and wipes any field you omit.
