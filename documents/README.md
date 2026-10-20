@@ -13,7 +13,8 @@ Push documents (PDF, Word, images, …) to Ditio **projects** and **work orders*
 | **Document** | Any file (PDF, Word, image, …) you push to a project or work order. It becomes a document on an Info Center page, visible to that project's members on mobile. |
 | **Section** | Optional name that groups a project's documents into a page (e.g. `Drawings`, `Contracts`). Re-using the same `(project, section)` adds to the same page. Omit it and documents land on a default **"Documents"** page. A section can be a **path** — `Dokumenter/Tillegg og endringer/Endringsmeldinger` — to build folders inside the project's folder ([Step 7](#step-7--folders-inside-the-project-section-paths)). |
 | **`fileReference.id`** | The id Ditio gives back when you push a document. Save it — you need it to download or delete that document later — or delete by section and file name instead, or use your own ids ([Step 8](#step-8--mirror-your-folder-tree-with-your-own-ids)). |
-| **`pageExternalId`** | Returned on upload; the stable handle of the Info Center page the documents landed on. |
+| **`pageExternalId`** | Returned on upload and list; the stable handle of the Info Center page the documents landed on. |
+| **`pageId`** | Ditio's id of the Info Center page (or folder). Returned on upload, list, describe and section responses — use it, for example, to link to the page. |
 | **Your own ids** (`sectionId`, `fileId`) | Optional: address folders, pages and documents by the ids your own system already has (e.g. SharePoint item ids), so renames and moves follow ([Step 8](#step-8--mirror-your-folder-tree-with-your-own-ids)). |
 
 You push a document using the **Ditio id** of a project or work order — **steps 2 and 3 below show how to find them** — or, for a project, by its **project number**. Upload, list, describe, delete by name and the your-own-id endpoints all also exist under `/api/v4/integration/projects/by-project-number/{projectNumber}/documents…`, so you never need to look up or store Ditio's project id. Download and delete by Ditio's `fileReferenceId` take the project id.
@@ -93,7 +94,7 @@ flowchart LR
     PAGE --> FILE
     SVC -->|"5 · attach files (dedupe / replace-by-name)"| FILE
     FILE -->|"6 · visible to project members"| FW
-    EP -.->|"returns fileReference.id + pageExternalId"| D
+    EP -.->|"returns fileReference.id + pageExternalId + pageId"| D
 ```
 
 **What gets created** — the durable handle is `(project, section)`; re-syncing to the same handle updates the same page rather than duplicating it:
@@ -108,6 +109,8 @@ flowchart LR
     └── 📑 Documents                   (default page — used when no section is given)
           └── 📎 Misc.pdf
 ```
+
+> **Folder name:** the project folder is named "{project number} – {project name}" and follows the project when its number or name changes. A folder an admin has renamed by hand in Ditio Web keeps that name.
 
 > **Visibility:** each project folder/page is scoped to that project, so it's shown to **active employees assigned to the project** in your company. Documents pushed to a **work order** nest under the same per-project folder.
 
@@ -292,6 +295,7 @@ curl -X POST "$BASE_URL/api/v4/integration/projects/65f1a2b3c4d5e6f7a8b9c0d1/doc
   "message": "Documents uploaded and attached ok",
   "section": "Drawings",
   "pageExternalId": "int-projdocs:65f1a2b3c4d5e6f7a8b9c0d1:drawings",
+  "pageId": "66c1a2b3c4d5e6f7a8b9c0d3",
   "files": [
     {
       "name": "Drawing-A1.pdf",
@@ -313,11 +317,11 @@ curl -X POST "$BASE_URL/api/v4/integration/projects/65f1a2b3c4d5e6f7a8b9c0d1/doc
 }
 ```
 
-> `files` are the documents created by *this* request; `infoPageFiles` is everything on the page after the upload. Store `files[].fileReference.id` — it's the handle for downloading or deleting a document. The documents are now visible to the project's members in the mobile app's Info Center.
+> `files` are the documents created by *this* request; `infoPageFiles` is everything on the page after the upload. Store `files[].fileReference.id` — it's the handle for downloading or deleting a document. `pageId` is Ditio's id of the page the documents landed on, for example to link to it. The documents are now visible to the project's members in the mobile app's Info Center.
 
 ### To a work order
 
-Identical, using the work order id from step 3, and it takes the same `section` and `replaceExistingFilesWithSameName` query parameters. The work order's documents nest under its **parent project's** folder; when you omit `section` it defaults to the work order's number/short description. On a work order, `section` is always one level: a `/` in it is part of the page name. Section paths, `sectionId` and `fileId` are available on project uploads only.
+Identical, using the work order id from step 3, and it takes the same `section` and `replaceExistingFilesWithSameName` query parameters. The work order's documents nest under its **parent project's** folder; when you omit `section` it defaults to the work order's number/short description. On a work order, `section` is always one level: a `/` in it is part of the page name. Section paths, `sectionId` and `fileId` are available on project uploads only. The response has the same shape, including `pageExternalId` and `pageId`.
 
 ```bash
 curl -X POST "$BASE_URL/api/v4/integration/tasks/66a1b2c3d4e5f6a7b8c9d0e2/documents" \
@@ -337,7 +341,7 @@ GET /api/v4/integration/projects/by-project-number/{projectNumber}/documents
 GET /api/v4/integration/tasks/{id}/documents
 ```
 
-Returns the section pages at every depth — each with `section` (its full path, e.g. `Dokumenter/Tillegg og endringer/Endringsmeldinger`), `sectionId` (your id, when the page was created with one; otherwise `null`), `pageExternalId`, and a `files` array of `{ fileReferenceId, name, fileId }` (`fileId` is your id, when the document was uploaded with one). For a work order, it returns the work order's own section page.
+Returns the section pages at every depth — each with `section` (its full path, e.g. `Dokumenter/Tillegg og endringer/Endringsmeldinger`), `sectionId` (your id, when the page was created with one; otherwise `null`), `pageExternalId`, `pageId` (Ditio's id of the Info Center page, for example to link to it), and a `files` array of `{ fileReferenceId, name, fileId }` (`fileId` is your id, when the document was uploaded with one). For a work order, it returns the work order's own section page; its `pageId` is `null` while that page does not exist yet.
 
 The path is built from the titles of the levels, so a title that itself contains `/` (renamed in Ditio Web, or a work
 order's name) reads as an extra level — use `sectionId` or `pageExternalId` when you need an exact handle.
@@ -348,6 +352,7 @@ order's name) reads as an extra level — use `sectionId` or `pageExternalId` wh
     "section": "Dokumenter/Tegninger",
     "sectionId": null,
     "pageExternalId": "int-projdocs:65f1a2b3c4d5e6f7a8b9c0d1:dokumenter/tegninger",
+    "pageId": "66c1a2b3c4d5e6f7a8b9c0d5",
     "files": [
       { "fileReferenceId": "66b1a2c3d4e5f6a7b8c9d0e3", "name": "Plan-A1.pdf", "fileId": null }
     ]
@@ -356,6 +361,7 @@ order's name) reads as an extra level — use `sectionId` or `pageExternalId` wh
     "section": "Dokumenter/Tillegg og endringer/Endringsmeldinger",
     "sectionId": "sp-meldinger",
     "pageExternalId": "int-projdocs:65f1a2b3c4d5e6f7a8b9c0d1:id:sp-meldinger",
+    "pageId": "66c1a2b3c4d5e6f7a8b9c0d6",
     "files": [
       { "fileReferenceId": "66b1a2c3d4e5f6a7b8c9d0e4", "name": "Endringsmelding - 01.docx", "fileId": "sp-file-0042" }
     ]
@@ -441,10 +447,13 @@ curl -X PATCH "$BASE_URL/api/v4/integration/projects/65f1a2b3c4d5e6f7a8b9c0d1/do
 ```json
 {
   "externalId": "int-projdocs:65f1a2b3c4d5e6f7a8b9c0d1:drawings",
+  "pageId": "66c1a2b3c4d5e6f7a8b9c0d3",
   "title": "Drawings",
   "description": "Approved drawings only.\nSuperseded revisions are moved to Archive."
 }
 ```
+
+`externalId` is the stable handle of the folder or page you described, and `pageId` is Ditio's id of it, for example to link to it.
 
 Notes:
 
@@ -536,7 +545,7 @@ curl -X PUT "$BASE_URL/api/v4/integration/projects/by-project-number/P-2025-001/
 | `isFolder` | `true` for a folder (holds sections), `false`/omitted for a page (holds documents). A section cannot change kind (`409`) — delete and recreate it. |
 | `description` | Optional guidance text, as in [Step 6](#step-6--describe-a-folder-or-section). Omit it to leave the current text; `""` clears it. |
 
-Returns `{ sectionId, name, parentSectionId, isFolder, description }`. Sending the same `sectionId` again with a
+Returns `{ sectionId, pageId, name, parentSectionId, isFolder, description }`, where `pageId` is Ditio's id of the folder or page, for example to link to it. Sending the same `sectionId` again with a
 new `name` or `parentSectionId` **renames or moves** the section, with everything in it. A move into the
 section's own subtree is rejected with `400`.
 

@@ -41,8 +41,13 @@ public static class DocumentsExample
         string? fileReferenceId = upload?.files?[0]?.fileReference?.id;
         Console.WriteLine($"Uploaded file reference id: {fileReferenceId}");
         Console.WriteLine($"Landed on Info Center page: {upload?.section} ({upload?.pageExternalId})");
+        // pageId is Ditio's id of that Info Center page, e.g. to link to it. The list, describe (PATCH) and
+        // section (PUT) responses carry it too.
+        string? pageId = upload?.pageId;
+        Console.WriteLine($"Info Center page id: {pageId}");
 
-        // List the document pages (sections) on the project and their files.
+        // List the document pages (sections) on the project and their files; each page has section, sectionId,
+        // pageExternalId, pageId and files.
         await api.GetAsync($"api/v4/integration/projects/{projectId}/documents");
 
         // Download a single document by id (gated to the project). The endpoint streams the bytes back
@@ -74,12 +79,14 @@ public static class DocumentsExample
             $"{byNumber}?section={Uri.EscapeDataString(sectionPath)}&replaceExistingFilesWithSameName=true", tempFile);
         Console.WriteLine($"Landed on: {pathUpload?.section} ({pathUpload?.pageExternalId})");
 
-        // Describe a folder on the path — any level can be described, not only the page.
-        await api.PatchAsync(
+        // Describe a folder on the path — any level can be described, not only the page. The response is
+        // { externalId, pageId, title, description }, where pageId is Ditio's id of the folder.
+        var described = await api.PatchAsync(
             $"{byNumber}?section={Uri.EscapeDataString("Dokumenter/Tillegg og endringer")}",
             new { description = "Change orders and change notices for this project." });
+        Console.WriteLine($"Described folder: {described?.title} (page id {described?.pageId})");
 
-        // Lists every page at every depth; 'section' is the full path, plus 'sectionId' and 'files[].fileId'.
+        // Lists every page at every depth; 'section' is the full path, plus 'sectionId', 'pageId' and 'files[].fileId'.
         await api.GetAsync(byNumber);
 
         // Delete by section and file name — no Ditio id needed (204, or 404 when it is not there).
@@ -92,6 +99,8 @@ public static class DocumentsExample
         // description (omit = keep the current text) }. The parent must exist (404) and be a folder (409).
         // Sending the same sectionId again with a new name or parentSectionId renames or moves the section.
         // Sections by id and sections by path are separate: a page created by id is never reached by a path.
+        // The response is { sectionId, pageId, name, parentSectionId, isFolder, description }; pageId is Ditio's
+        // id of the folder or page.
         await api.PutAsync($"{byNumber}/sections/sp-dokumenter", new
         {
             name = "Dokumenter",
@@ -104,11 +113,12 @@ public static class DocumentsExample
             isFolder = true,
             description = "Change orders and change notices",
         });
-        await api.PutAsync($"{byNumber}/sections/sp-meldinger", new
+        var sectionPage = await api.PutAsync($"{byNumber}/sections/sp-meldinger", new
         {
             name = "Endringsmeldinger",
             parentSectionId = "sp-tillegg",
         });
+        Console.WriteLine($"Section {sectionPage?.sectionId} is Info Center page {sectionPage?.pageId}");
 
         // Upload exactly one file with your fileId (400 otherwise); uploading the same fileId again replaces the
         // document wherever it is on the project. Don't send both section and sectionId (400).
