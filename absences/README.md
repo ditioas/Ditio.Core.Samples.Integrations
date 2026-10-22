@@ -115,10 +115,10 @@ Things to know:
 
 - **All absences, by default.** An absence registered in the app or the backoffice is included too, with `externalId: null`. Those can be read here but not changed or cancelled through this API — only absences you pushed, under your `externalId`, can be. Send `externalOnly=true` to see only your own.
 - **Overlap, not containment.** An absence running from 28 September to 3 October is returned for October, with all of its `days` — filter the days yourself if you only want the ones inside the period.
-- **Across your structure.** When your API client is on a parent company with project companies, absences in those project companies are included. Each absence carries its `companyId`; send that as `x-company-id` to read, change or cancel it by `externalId`. A project company sees only its own.
+- **Across your structure.** When your API client is on a parent company with project companies, absences in those project companies are included. Each absence carries its `companyId`, the company it belongs to; reading, changing or cancelling it by `externalId` has to happen in that company. A project company sees only its own.
 - **Deleted absences are not returned.** A cancellation removes the absence, so an `externalId` missing from a period it used to be in has either been cancelled — in Ditio or through this API — or had its dates moved outside that period. `GET /api/integration/absences/{externalId}` tells the two apart.
 
-A missing `fromDate` or `toDate`, a `toDate` before `fromDate`, or a period longer than 92 days returns `400` with a message naming the problem.
+A missing `fromDate` or `toDate`, a date that is not a plain `yyyy-MM-dd` date, a `toDate` before `fromDate`, a period longer than 92 days, or an `externalOnly` other than `true`/`false` returns `400` with a message naming the problem.
 
 ## Days payroll has settled are frozen
 

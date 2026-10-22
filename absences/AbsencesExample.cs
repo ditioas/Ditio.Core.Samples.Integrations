@@ -110,7 +110,8 @@ public static class AbsencesExample
         // (step 3) to tell which.
         //
         // With a parent company that has project companies, the list covers the whole structure. Each
-        // row carries companyId — send it as the x-company-id header to act on that absence by externalId.
+        // row carries companyId, the company it belongs to — acting on that absence by externalId has to
+        // happen in that company.
 
         // 5. Cancel it. Only absences created through this endpoint are reachable — an absence a person
         //    registered in the app carries no externalId, so it cannot be found or deleted here. That is
