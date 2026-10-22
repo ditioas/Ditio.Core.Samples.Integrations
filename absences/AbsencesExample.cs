@@ -109,7 +109,8 @@ public static class AbsencesExample
         // now was either cancelled or had its dates moved outside the period — read it by externalId
         // (step 3) to tell which.
         //
-        // With a parent company that has project companies, the list covers the whole structure. Each
+        // With a parent company that has project companies, the list also covers those project companies
+        // (not subsidiaries); any other company sees only its own absences. Each
         // row carries companyId, the company it belongs to — acting on that absence by externalId has to
         // happen in that company.
 
