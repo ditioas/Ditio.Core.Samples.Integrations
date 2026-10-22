@@ -93,7 +93,32 @@ curl -X DELETE "$BASE_URL/api/integration/absences/884213/1/7" -H "Authorization
 
 `DELETE` returns `204 No Content`, or `404` if no absence is held under that id.
 
-Only absences created through this endpoint are reachable. One a person registered in the app carries no `externalId`, so it cannot be found, changed or deleted here — that falls out of the key rather than a permission check.
+Only absences created through this endpoint are reachable by `externalId`. One a person registered in the app carries no `externalId`, so it cannot be found, changed or deleted by it — that falls out of the key rather than a permission check. It can still be read in the [period list](#list-absences-for-a-period).
+
+## List absences for a period
+
+```bash
+curl "$BASE_URL/api/integration/absences?fromDate=2026-10-01&toDate=2026-10-31" -H "Authorization: Bearer $TOKEN"
+
+curl "$BASE_URL/api/integration/absences?fromDate=2026-10-01&toDate=2026-10-31&externalOnly=true" -H "Authorization: Bearer $TOKEN"
+```
+
+Returns every absence that overlaps the period, as an array of the same objects the read-back above returns, ordered by start date. Use it to reconcile what Ditio holds against your own records.
+
+| Parameter | |
+|-----------|---|
+| `fromDate` | **Required.** First day of the period, inclusive. A plain date, e.g. `2026-10-01` |
+| `toDate` | **Required.** Last day of the period, inclusive. At most 92 days after `fromDate` counted inclusively — read a longer history one period at a time |
+| `externalOnly` | Optional, default `false`. `true` returns only the absences pushed through this API |
+
+Things to know:
+
+- **All absences, by default.** An absence registered in the app or the backoffice is included too, with `externalId: null`. Those can be read here but not changed or cancelled through this API — only absences you pushed, under your `externalId`, can be. Send `externalOnly=true` to see only your own.
+- **Overlap, not containment.** An absence running from 28 September to 3 October is returned for October, with all of its `days` — filter the days yourself if you only want the ones inside the period.
+- **Across your structure.** When your API client is on a parent company with project companies, absences in those project companies are included. Each absence carries its `companyId`; send that as `x-company-id` to read, change or cancel it by `externalId`. A project company sees only its own.
+- **Deleted absences are not returned.** A cancellation removes the absence, so an `externalId` missing from a period it used to be in has either been cancelled — in Ditio or through this API — or had its dates moved outside that period. `GET /api/integration/absences/{externalId}` tells the two apart.
+
+A missing `fromDate` or `toDate`, a `toDate` before `fromDate`, or a period longer than 92 days returns `400` with a message naming the problem.
 
 ## Days payroll has settled are frozen
 

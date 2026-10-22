@@ -2,7 +2,7 @@ namespace Ditio.Samples.Examples;
 
 /// <summary>
 /// Push an absence that has already been granted in your payroll or HR system into Ditio, in one call,
-/// via api/integration/absences. Then read it back and cancel it.
+/// via api/integration/absences. Then read it back, list what Ditio holds for a period, and cancel it.
 /// <para>
 /// The point of this endpoint is that you send the identifiers you already hold — an employee number, a
 /// payroll code, a project number — and Ditio resolves its own ids, expands the period into days, and
@@ -90,7 +90,29 @@ public static class AbsencesExample
         // 3. Read it back by your own id. No Ditio id needed, ever.
         await api.GetAsync($"api/integration/absences/{externalId}");
 
-        // 4. Cancel it. Only absences created through this endpoint are reachable — an absence a person
+        // 4. List what Ditio holds for a period — to reconcile it against your own records. Every absence
+        //    that OVERLAPS the period comes back, as the same objects the read-back above returns, ordered
+        //    by start date. Both dates are required, plain dates, inclusive, at most 92 days apart.
+        //
+        //    By default this includes absences registered in the app or the backoffice. They carry
+        //    externalId = null: you can read them here, but not change or cancel them through the API.
+        var allAbsences = await api.GetAsync("api/integration/absences?fromDate=2026-09-01&toDate=2026-09-30");
+
+        // externalOnly=true narrows the list to the absences pushed through this API.
+        var ownAbsences = await api.GetAsync("api/integration/absences?fromDate=2026-09-01&toDate=2026-09-30&externalOnly=true");
+
+        // An absence that overlaps the period is returned with ALL of its days, also those outside it.
+        // Filter the days yourself if you only want the ones inside.
+        Console.WriteLine($"Absences in September: {allAbsences?.Count}, of which pushed via the API: {ownAbsences?.Count}");
+
+        // Cancelled absences are not returned. An externalId that was in an earlier listing and is gone
+        // now was either cancelled or had its dates moved outside the period — read it by externalId
+        // (step 3) to tell which.
+        //
+        // With a parent company that has project companies, the list covers the whole structure. Each
+        // row carries companyId — send it as the x-company-id header to act on that absence by externalId.
+
+        // 5. Cancel it. Only absences created through this endpoint are reachable — an absence a person
         //    registered in the app carries no externalId, so it cannot be found or deleted here. That is
         //    a property of the key rather than a permission check.
         await api.DeleteAsync($"api/integration/absences/{externalId}");
