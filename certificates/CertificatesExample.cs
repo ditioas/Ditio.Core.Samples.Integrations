@@ -2,7 +2,8 @@ namespace Ditio.Samples.Examples;
 
 /// <summary>
 /// Create-or-update user certificates via api/v4/integration/certificates. Certificates are matched
-/// to an existing user by employeeNumber + certificateType.
+/// to an existing user by employeeNumber + certificateType. Then attach an image of the card to a certificate
+/// via api/v4/integration/certificates/attachments, addressed by the same employeeNumber + certificateType.
 /// </summary>
 public static class CertificatesExample
 {
@@ -33,5 +34,26 @@ public static class CertificatesExample
         });
 
         // Re-posting the same employeeNumber + certificateType updates the existing certificate.
+        // certificateNumber is stored on the certificate; on an update, leaving it out keeps the stored number.
+
+        // Attach an image (or PDF scan) of the card to the certificate. The certificate must exist first (the
+        // upsert above), otherwise the upload returns 404. It is addressed by the same employeeNumber +
+        // certificateType, so you never need a Ditio id. Send one or more files, each as a 'file' part.
+        // Replace this generated 1x1 PNG with the real scan in practice.
+        var cardImage = Path.Combine(Path.GetTempPath(), "byggekort-front.png");
+        await File.WriteAllBytesAsync(cardImage, Convert.FromBase64String(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/iZk9HQAAAABJRU5ErkJggg=="));
+
+        // replaceExistingFilesWithSameName=true replaces a file your company uploaded earlier to this certificate
+        // with the same file name (use it on re-sync to avoid duplicates). Attachments added by others, for
+        // example the employee in the app, are never replaced.
+        var upload = await api.UploadFilesAsync(
+            "api/v4/integration/certificates/attachments?employeeNumber=SAMPLE-1042&certificateType=Byggekort" +
+            "&replaceExistingFilesWithSameName=true",
+            cardImage);
+
+        string? certificateId = upload?.certificateId;
+        string? fileReferenceId = upload?.files?[0]?.fileReference?.id;
+        Console.WriteLine($"Attached to certificate {certificateId}; file reference id: {fileReferenceId}");
     }
 }

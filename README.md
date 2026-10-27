@@ -21,7 +21,7 @@ Example integrations for the **Ditio Core API** — one folder per integration k
 - [`reference-data`](reference-data/README.md) — machine types, alert types (lookups you need first)
 - [`users`](users/README.md) — users (v4)
 - [`employees-v5`](employees-v5/README.md) — employees (v5, **recommended**)
-- [`certificates`](certificates/README.md) — user certificates
+- [`certificates`](certificates/README.md) — user certificates, and image/PDF scans of the card attached to them
 - [`documents`](documents/README.md) — documents on projects & work orders
 - [`absences`](absences/README.md) — push absences granted in your payroll/HR system, in one call, and list what Ditio holds for a period
 
