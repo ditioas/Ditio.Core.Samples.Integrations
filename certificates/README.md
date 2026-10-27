@@ -56,23 +56,19 @@ curl -X POST "$BASE_URL/api/v4/integration/certificates/attachments?employeeNumb
   "certificateId": "66c1a2b3c4d5e6f7a8b9c0d4",
   "files": [
     {
-      "name": "byggekort-front.jpg",
-      "created": "2026-06-05T08:10:25Z",
-      "modified": "2026-06-05T08:10:25Z",
-      "size": 182113,
-      "url": "/api/file/66b1a2c3d4e5f6a7b8c9d0e2",
-      "fileReference": { "id": "66b1a2c3d4e5f6a7b8c9d0e2" }
+      "fileReference": { "id": "66b1a2c3d4e5f6a7b8c9d0e2", "fileNameOrig": "byggekort-front.jpg" }
     }
   ],
-  "attachments": ["66b1a2c3d4e5f6a7b8c9d0e2"]
+  "attachments": ["66b1a2c3d4e5f6a7b8c9d0e1", "66b1a2c3d4e5f6a7b8c9d0e2"]
 }
 ```
 
-`certificateId` is the certificate the files were attached to; `files[].fileReference.id` and `attachments` are the ids of the stored files.
+`certificateId` is the certificate the files were attached to. `files` has one entry per file created by this request (more file metadata than shown); `fileReference.id` is the stored file's id. `attachments` lists **all** file ids on the certificate after the upload, including earlier ones, without any that were replaced. If one request sends the same file name twice with `replaceExistingFilesWithSameName=true`, the last file is kept.
 
 | Status | When |
 |--------|------|
+| `400` | `employeeNumber` or `certificateType` is blank, or no employee has that `employeeNumber` |
 | `404` | The employee has no current certificate of that type — create it first |
-| `400` | `employeeNumber` or `certificateType` is blank, or the body is not `multipart/form-data` |
+| `415` | The body is not `multipart/form-data` |
 
 **C#:** [`CertificatesExample.cs`](CertificatesExample.cs).
