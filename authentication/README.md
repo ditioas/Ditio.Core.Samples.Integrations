@@ -40,7 +40,7 @@ If a Core API call returns `401`, first check whether the Bearer token is missin
 | Scope | API |
 |-------|-----|
 | `ditioapiv3` | Integration + core API (`api/v4/integration/*`, `api/v5/integration/*`, `api/file`) |
-| `reportingapiv1` | Reporting / data-extraction API (`v1/*`) |
+| `reportingapiv1` | Reporting / data-extraction API (`v1/*`), and `GET /api/file/{id}` to download the `pdfUrl` and image URLs it returns |
 
 Request multiple in one token by space-separating: `scope=ditioapiv3 reportingapiv1`.
 
