@@ -63,11 +63,11 @@ curl -X POST "$BASE_URL/api/v4/integration/certificates/attachments?employeeNumb
 }
 ```
 
-`certificateId` is the certificate the files were attached to. `files` has one entry per file created by this request (more file metadata than shown); `fileReference.id` is the stored file's id. `attachments` lists **all** file ids on the certificate after the upload, including earlier ones, without any that were replaced. If one request sends the same file name twice with `replaceExistingFilesWithSameName=true`, the last file is kept.
+`certificateId` is the certificate the files were attached to. `files` has one entry per file attached by this request (more file metadata than shown); `fileReference.id` is the stored file's id. `attachments` lists **all** file ids on the certificate after the upload, including earlier ones, without any that were replaced. If one request sends the same file name twice with `replaceExistingFilesWithSameName=true`, the last file is kept.
 
 | Status | When |
 |--------|------|
-| `400` | `employeeNumber` or `certificateType` is blank, or no employee has that `employeeNumber` |
+| `400` | `employeeNumber` or `certificateType` is blank, no employee has that `employeeNumber`, or the body has no `file` part |
 | `404` | The employee has no current certificate of that type — create it first |
 | `415` | The body is not `multipart/form-data` |
 
