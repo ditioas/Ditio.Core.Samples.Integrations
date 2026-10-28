@@ -68,8 +68,10 @@ curl -X POST "$BASE_URL/api/v4/integration/certificates/attachments?employeeNumb
 
 | Status | When |
 |--------|------|
+| `401` | The token is missing or invalid |
+| `403` | The token may not use the integration API |
 | `400` | `employeeNumber` or `certificateType` is blank, no employee has that `employeeNumber`, or the body has no `file` part |
-| `404` | The employee has no current certificate of that type (with that `certificateNumber`, when sent) — create it first. Also when the employee has no profile in the company your token belongs to, or the API client is read-only. |
+| `404` | The employee has no current certificate of that type (with that `certificateNumber`, when sent) — create it first. Also when the employee has no profile in the company your token belongs to, or the API client is read-only. Also when the `InheritUserFromRef` or `isAvatar` upload headers are sent. |
 | `415` | The body is not `multipart/form-data` |
 
 **C#:** [`CertificatesExample.cs`](CertificatesExample.cs).

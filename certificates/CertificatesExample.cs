@@ -40,7 +40,8 @@ public static class CertificatesExample
         // upsert above), otherwise the upload returns 404. It is addressed by the same employeeNumber +
         // certificateType, so you never need a Ditio id. Send one or more files, each as a 'file' part.
         // Replace this generated 1x1 PNG with the real scan in practice.
-        var cardImage = Path.Combine(Path.GetTempPath(), "byggekort-front.png");
+        var workDir = Directory.CreateTempSubdirectory("ditio-cert-");
+        var cardImage = Path.Combine(workDir.FullName, "byggekort-front.png");
         await File.WriteAllBytesAsync(cardImage, Convert.FromBase64String(
             "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/iZk9HQAAAABJRU5ErkJggg=="));
 
@@ -48,13 +49,23 @@ public static class CertificatesExample
         // with the same file name (use it on re-sync to avoid duplicates). Attachments added by others, for
         // example the employee in the app, are never replaced. certificateNumber picks the card when the employee
         // holds more than one current builder card; without it, the one valid longest is used.
-        var upload = await api.UploadFilesAsync(
-            "api/v4/integration/certificates/attachments?employeeNumber=SAMPLE-1042&certificateType=Byggekort" +
-            "&certificateNumber=BK-2025-12345&replaceExistingFilesWithSameName=true",
-            cardImage);
+        dynamic? upload;
+        try
+        {
+            upload = await api.UploadFilesAsync(
+                "api/v4/integration/certificates/attachments?employeeNumber=SAMPLE-1042&certificateType=Byggekort" +
+                "&certificateNumber=BK-2025-12345&replaceExistingFilesWithSameName=true",
+                cardImage);
+        }
+        finally
+        {
+            workDir.Delete(recursive: true);
+        }
 
         string? certificateId = upload?.certificateId;
-        string? fileReferenceId = upload?.files?[0]?.fileReference?.id;
+        // files can be empty when every entry was replaced in the same request.
+        var files = upload?.files;
+        string? fileReferenceId = files != null && files.Count > 0 ? files[0]?.fileReference?.id : null;
         Console.WriteLine($"Attached to certificate {certificateId}; file reference id: {fileReferenceId}");
     }
 }
