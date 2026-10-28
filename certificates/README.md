@@ -38,7 +38,7 @@ Send one or more files as `multipart/form-data`, each in a part named `file`. Qu
 |-------|----------|--------|
 | `employeeNumber` | yes | The employee's number, as in the upsert |
 | `certificateType` | yes | The certificate type, as in the upsert |
-| `replaceExistingFilesWithSameName` | no | Default `false`. When `true`, a file this API client uploaded earlier to this certificate with the same original file name is replaced instead of added again. Attachments added by others (for example the employee in the app) are never replaced |
+| `replaceExistingFilesWithSameName` | no | Default `false`. When `true`, a file this API client (or, when your token acts as a user, that user) uploaded earlier to this certificate with the same original file name is replaced instead of added again. Attachments added by others (for example the employee in the app) are never replaced |
 | `certificateNumber` | no | Optional. Only the employee's current certificate with this number (as sent in the upsert; case and spaces ignored). `404` when none has it. Without it, when the employee holds several current certificates of the type, the one valid longest is used, then the newest |
 
 ```bash
