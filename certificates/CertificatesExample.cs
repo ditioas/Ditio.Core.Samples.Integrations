@@ -46,10 +46,11 @@ public static class CertificatesExample
 
         // replaceExistingFilesWithSameName=true replaces a file your company uploaded earlier to this certificate
         // with the same file name (use it on re-sync to avoid duplicates). Attachments added by others, for
-        // example the employee in the app, are never replaced.
+        // example the employee in the app, are never replaced. certificateNumber picks the card when the employee
+        // holds more than one current builder card; without it, the one valid longest is used.
         var upload = await api.UploadFilesAsync(
             "api/v4/integration/certificates/attachments?employeeNumber=SAMPLE-1042&certificateType=Byggekort" +
-            "&replaceExistingFilesWithSameName=true",
+            "&certificateNumber=BK-2025-12345&replaceExistingFilesWithSameName=true",
             cardImage);
 
         string? certificateId = upload?.certificateId;

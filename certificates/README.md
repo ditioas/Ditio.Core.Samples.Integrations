@@ -26,7 +26,7 @@ curl -X POST $BASE_URL/api/v4/integration/certificates \
   ]'
 ```
 
-Required per item: `employeeNumber`, `certificateType`, `issuedDateTime`, `validUntilDateTime`. Optional: `certificateNumber`, `notes`. The `employeeNumber` must match an existing user; `issuedDateTime` must be before `validUntilDateTime`. Re-posting the same `employeeNumber` + `certificateType` **updates** the existing certificate. `certificateNumber` is stored on the certificate; on an update, leaving it out keeps the stored number.
+Required per item: `employeeNumber`, `certificateType`, `issuedDateTime`, `validUntilDateTime`. Optional: `certificateNumber`, `notes`. The `employeeNumber` must match an existing user; `issuedDateTime` must be before `validUntilDateTime`. Re-posting the same `employeeNumber` + `certificateType` **updates** the existing certificate. An employee can hold several current certificates of one type, for example builder cards or types that allow multiple. The update then goes to the one with the `certificateNumber` you send; when none has that number, or you send none, it goes to the one valid longest (latest `validUntilDateTime`), then the newest. `certificateNumber` is stored on the certificate; on an update, leaving it out keeps the stored number.
 
 ## Upload attachments to a certificate
 
@@ -39,9 +39,10 @@ Send one or more files as `multipart/form-data`, each in a part named `file`. Qu
 | `employeeNumber` | yes | The employee's number, as in the upsert |
 | `certificateType` | yes | The certificate type, as in the upsert |
 | `replaceExistingFilesWithSameName` | no | Default `false`. When `true`, a file your company uploaded earlier to this certificate with the same original file name is replaced instead of added again. Attachments added by others (for example the employee in the app) are never replaced |
+| `certificateNumber` | no | Optional. Only the employee's current certificate with this number (as sent in the upsert; case and spaces ignored). `404` when none has it. Without it, when the employee holds several current certificates of the type, the one valid longest is used, then the newest |
 
 ```bash
-curl -X POST "$BASE_URL/api/v4/integration/certificates/attachments?employeeNumber=1042&certificateType=Byggekort&replaceExistingFilesWithSameName=true" \
+curl -X POST "$BASE_URL/api/v4/integration/certificates/attachments?employeeNumber=1042&certificateType=Byggekort&certificateNumber=BK-2025-12345&replaceExistingFilesWithSameName=true" \
   -H "Authorization: Bearer $TOKEN" \
   -F "file=@/path/to/byggekort-front.jpg" \
   -F "file=@/path/to/byggekort-back.jpg"
@@ -68,7 +69,7 @@ curl -X POST "$BASE_URL/api/v4/integration/certificates/attachments?employeeNumb
 | Status | When |
 |--------|------|
 | `400` | `employeeNumber` or `certificateType` is blank, no employee has that `employeeNumber`, or the body has no `file` part |
-| `404` | The employee has no current certificate of that type — create it first |
+| `404` | The employee has no current certificate of that type (with that `certificateNumber`, when sent) — create it first |
 | `415` | The body is not `multipart/form-data` |
 
 **C#:** [`CertificatesExample.cs`](CertificatesExample.cs).
