@@ -36,6 +36,16 @@ internal sealed record SyncEndpoint(string Path, string Table, string[] ViewColu
             "projectId", "projectNumber", "projectName",
             "driverId", "driverName", "qty", "approved", "modifiedDateTime",
         ]),
+        new("v1/item-registrations", "item_registrations",
+        [
+            "transDate", "transType", "registrationId",
+            "itemId", "itemNumber", "itemName", "unit",
+            "quantity", "costPrice", "price", "costAmount", "amount",
+            "projectId", "projectNumber", "projectName",
+            "taskId", "taskWbsNumber", "taskName",
+            "machineId", "machineResourceNumber", "warehouseName",
+            "userId", "userName", "description", "modifiedDateTime",
+        ]),
         new("v1/incident-registrations", "incident_registrations",
         [
             "serialNumber", "title", "typeName", "baseType", "status", "risk",
