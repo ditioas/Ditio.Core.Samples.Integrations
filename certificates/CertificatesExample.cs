@@ -44,7 +44,7 @@ public static class CertificatesExample
         await File.WriteAllBytesAsync(cardImage, Convert.FromBase64String(
             "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/iZk9HQAAAABJRU5ErkJggg=="));
 
-        // replaceExistingFilesWithSameName=true replaces a file your company uploaded earlier to this certificate
+        // replaceExistingFilesWithSameName=true replaces a file this API client uploaded earlier to this certificate
         // with the same file name (use it on re-sync to avoid duplicates). Attachments added by others, for
         // example the employee in the app, are never replaced. certificateNumber picks the card when the employee
         // holds more than one current builder card; without it, the one valid longest is used.

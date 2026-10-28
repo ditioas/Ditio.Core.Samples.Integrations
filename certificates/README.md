@@ -38,7 +38,7 @@ Send one or more files as `multipart/form-data`, each in a part named `file`. Qu
 |-------|----------|--------|
 | `employeeNumber` | yes | The employee's number, as in the upsert |
 | `certificateType` | yes | The certificate type, as in the upsert |
-| `replaceExistingFilesWithSameName` | no | Default `false`. When `true`, a file your company uploaded earlier to this certificate with the same original file name is replaced instead of added again. Attachments added by others (for example the employee in the app) are never replaced |
+| `replaceExistingFilesWithSameName` | no | Default `false`. When `true`, a file this API client uploaded earlier to this certificate with the same original file name is replaced instead of added again. Attachments added by others (for example the employee in the app) are never replaced |
 | `certificateNumber` | no | Optional. Only the employee's current certificate with this number (as sent in the upsert; case and spaces ignored). `404` when none has it. Without it, when the employee holds several current certificates of the type, the one valid longest is used, then the newest |
 
 ```bash
@@ -69,7 +69,7 @@ curl -X POST "$BASE_URL/api/v4/integration/certificates/attachments?employeeNumb
 | Status | When |
 |--------|------|
 | `400` | `employeeNumber` or `certificateType` is blank, no employee has that `employeeNumber`, or the body has no `file` part |
-| `404` | The employee has no current certificate of that type (with that `certificateNumber`, when sent) — create it first |
+| `404` | The employee has no current certificate of that type (with that `certificateNumber`, when sent) — create it first. Also when the employee has no profile in the company your token belongs to, or the API client is read-only. |
 | `415` | The body is not `multipart/form-data` |
 
 **C#:** [`CertificatesExample.cs`](CertificatesExample.cs).
