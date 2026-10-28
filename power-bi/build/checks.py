@@ -122,7 +122,7 @@ def check_layout(layout, columns, measures):
             if not query:
                 continue
             aliases = {f["Name"]: f["Entity"] for f in query["From"]}
-            for select in query["Select"]:
+            for select in query["Select"] + [o["Expression"] for o in query.get("OrderBy", [])]:
                 if "Measure" in select:
                     if select["Measure"]["Property"] not in measures:
                         errors.append(f"{section['displayName']}: unknown measure {select['Measure']['Property']!r}")

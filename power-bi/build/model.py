@@ -48,6 +48,7 @@ class Labels:
         result = [(api, kind, self.resolve(raw), self.resolve(raw) if raw.startswith("hdr:") else None)
                   for api, kind, raw in table["columns"]]
         result += [(new_field, "text", label, None) for new_field, _, _, label in table.get("mapped", [])]
+        result += [(new_field, "text", label, None) for new_field, label, _, _ in table.get("derived", [])]
         if "per_person" in table:
             result.append((table["per_person"]["count_field"], "int", table["per_person"]["count_label"], None))
         if "date_key" in table:
@@ -70,6 +71,9 @@ def _description(table, api, excel_label):
     for new_field, source, _, _ in table.get("mapped", []):
         if api == new_field:
             return f"Norsk visning av API-feltet {source}."
+    for new_field, _, _, description in table.get("derived", []):
+        if api == new_field:
+            return description
     text = f"API-felt: {api}."
     if excel_label:
         text += f" Samme som Excel-kolonnen «{excel_label}» i Ditio."

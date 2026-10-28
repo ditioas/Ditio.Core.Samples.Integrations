@@ -4,7 +4,7 @@
 
 A Power BI template that loads Ditio data through the **Data Extraction API** (`v1/*` on the Reporting API) — the same paginated, documented endpoints described in [`data-extraction`](../data-extraction/README.md). The report is in Norwegian.
 
-**File:** [`Ditio-PowerBI-mal.pbit`](Ditio-PowerBI-mal.pbit) (v2.2.0)
+**File:** [`Ditio-PowerBI-mal.pbit`](Ditio-PowerBI-mal.pbit) (v2.3.0)
 
 ## What it loads
 
@@ -17,6 +17,7 @@ A Power BI template that loads Ditio data through the **Data Extraction API** (`
 | `Timeføringer` | `v1/time-registrations` | ✓ |
 | `Maskinregistreringer` | `v1/machine-registrations` | ✓ |
 | `Fravær` | `v1/absence-registrations` | ✓ |
+| `Lønn per dag` | `v1/payroll-lines-extended` (`ExportFilter=All`, `UserPayrollTypeFilter=AllUsers`) | ✓ |
 | `Varsler` | `v1/incident-registrations` | ✓ |
 | `Sjekklister` | `v1/checklist-registrations` | ✓ |
 | `Massetransport` | `v1/flow-trip-registrations` | ✓ |
@@ -25,10 +26,10 @@ A Power BI template that loads Ditio data through the **Data Extraction API** (`
 The model also has:
 
 - **`Dato`**: one row per day from three years back to the end of next year, with ISO weeks (Monday start), Norwegian month and weekday names. It is marked as the date table, and every registration table is related to it on its `Dato` column.
-- **`Målinger`**: ready-made measures in display folders: hours (person, machine, vehicle, approved, payroll-approved, unapproved older than 14 days), machines, absence, HSE and quality (incidents per 100,000 person hours, checklists with deviations), mass transport (tonnes and m³ kept apart), items, economy (cost, sales, contribution margin and how complete prices are) and data status.
+- **`Målinger`**: ready-made measures in display folders: hours (person, machine, vehicle, approved, payroll-approved, locked, unapproved by age, median approval lag), machines (machine-days, last registration), absence (sick leave %, also rolling 12 months), payroll and overtime (ordinary hours, overtime 50 % / 100 %, overtime share, time bank, payroll status), HSE and quality (incidents per 100,000 person hours, checklists with deviations), mass transport (tonnes and m³ kept apart), items, economy (cost, sales, contribution margin and how complete prices are) and data status.
 - **`Datakilder`**, **`Feltordliste`** and **`Datagrunnlag`**: the tables behind the Start and Feltordliste pages.
 
-The registration tables are related to `Prosjekter`, `Arbeidsordrer` and `Ressurser`; `Timeføringer` and `Fravær` also to `Brukere`. Status, base type, unit and similar fields are shown in Norwegian (e.g. *Åpen / Pågår / Lukket*). Ids and other keys are hidden. Deleted records are filtered out.
+The registration tables are related to `Prosjekter`, `Arbeidsordrer` and `Ressurser` where they carry those ids (`Fravær` only to `Prosjekter`; `Lønn per dag` to none of them, it is per employee and day); `Timeføringer`, `Fravær` and `Lønn per dag` also to `Brukere` (on the identity user id). `Fravær` gets a derived `Fraværsgruppe` column (Sykefravær, Sykt barn, Ferie, Avspasering, Annet fravær) read from the absence type name, because the API doesn't return the absence type's category; sick leave % depends on it. Status, base type, unit and similar fields are shown in Norwegian (e.g. *Åpen / Pågår / Lukket*). Ids and other keys are hidden. Deleted records are filtered out.
 
 ### Field names
 
@@ -39,9 +40,14 @@ Columns carry the **same names as Ditio's Excel export** ("Kostpris maskin", "St
 | Page | Shows |
 |------|-------|
 | **Start** | Loaded period, last refresh, rows and newest change per table, how to use the report |
+| **Oversikt** | KPI cards (person and machine hours, % approved, overtime share, sick leave %, HSE reports per 100,000 hours, open incidents, checklists), hours per week by resource group, hours per project |
+| **Timer** | Project → work order → resource matrix by month, approval pipeline, unapproved hours by age, median days to approval |
+| **Maskiner** | Machine and vehicle hours per week and machine type, hours per machine-day, machines with their last registration |
+| **Lønn og overtid** | Ordinary hours, overtime 50 % / 100 % and time bank per month, overtime share (also per position), payroll status, time bank in vs time off in lieu. Hours only, no pay amounts. |
+| **Fravær** | Absence per month and group, sick leave % and its rolling 12 months, absence days per type |
 | **Feltordliste** | Every field: report label, API field, Excel column |
 
-More pages (overview, hours, machines, mass transport, HSE and quality, payroll, absence, economy) follow in later versions.
+Every analysis page has a date range and a project slicer. Payroll figures, overtime share, time off in lieu and sick leave % ignore the project slicer: the payroll summary has no project, so they are always company-wide. More pages (mass transport, site screen, HSE and quality, economy) follow in later versions.
 
 ## Set up
 
@@ -57,6 +63,7 @@ More pages (overview, hours, machines, mass transport, HSE and quality, payroll,
    | `AccessToken` | Optional. A ready-made token with the `reportingapiv1` scope, used instead of `ClientId`/`ClientSecret`. |
    | `RangeStart` / `RangeEnd` | The period loaded in Power BI Desktop: RangeStart included, RangeEnd not. Once published, the incremental refresh policy takes over (see below). Projects, work orders, resources and users are always loaded in full. |
    | `CompanyId` | Optional. Only load data registered in this Ditio company. Leave empty to load everything the API client can see. Not applied to `Varetransaksjoner`. |
+   | `IncludePayroll` | `true` (default) loads `Lønn per dag`. `v1/payroll-lines-extended` only answers for API clients that act as an administrator; set this to `false` to skip it. The payroll figures and overtime share are then empty (time off in lieu still shows, from `Fravær`) and sick leave % falls back to person hours plus absence hours. |
 
 3. When asked how to connect to `core-api.ditio.app` and `identity.ditio.app`, choose **Anonymous** — the template sends its own bearer token. When asked about privacy levels, set both to **Organizational** (not *Private* — Power BI won't combine two Private sources).
 

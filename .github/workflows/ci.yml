@@ -42,3 +42,34 @@ jobs:
         # Warnings are not errors here: the samples favour readability over
         # ceremony, and a warning should not block a docs-only change.
         run: dotnet build --no-restore --configuration Release
+
+      # The Power BI template, its .pq files and feltordliste.md are generated
+      # by power-bi/build/build_pbit.py (byte-identical on every run). Rebuild
+      # and fail if the committed files differ: someone edited a generated
+      # file by hand, or changed the generator without rebuilding.
+      - name: Rebuild the Power BI template
+        run: python3 power-bi/build/build_pbit.py
+
+      # The .pbit is compared member by member, not byte for byte: deflate output
+      # can differ between zlib builds while the content is the same.
+      - name: Check the committed template matches the generator
+        run: |
+          hint="Run python3 power-bi/build/build_pbit.py and commit the result."
+          if ! git diff --exit-code --stat -- power-bi ':(exclude)power-bi/Ditio-PowerBI-mal.pbit'; then
+            echo "::error::power-bi/ differs from what build_pbit.py generates. $hint"
+            exit 1
+          fi
+          git show HEAD:power-bi/Ditio-PowerBI-mal.pbit > "$RUNNER_TEMP/committed.pbit"
+          if ! python3 -c 'import sys, zipfile
+          def members(path):
+              with zipfile.ZipFile(path) as z:
+                  return {i.filename: z.read(i) for i in z.infolist()}
+          sys.exit(members(sys.argv[1]) != members(sys.argv[2]))' "$RUNNER_TEMP/committed.pbit" power-bi/Ditio-PowerBI-mal.pbit; then
+            echo "::error::Ditio-PowerBI-mal.pbit differs from what build_pbit.py generates. $hint"
+            exit 1
+          fi
+          untracked=$(git ls-files --others --exclude-standard -- power-bi)
+          if [ -n "$untracked" ]; then
+            echo "::error::build_pbit.py generated files that are not committed: $untracked"
+            exit 1
+          fi
