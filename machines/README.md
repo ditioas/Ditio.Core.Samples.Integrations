@@ -20,13 +20,20 @@ Required: `companyId`, `machineNumber`. Batch create: `POST .../machines/create/
 curl $BASE_URL/api/v4/integration/machines                                 -H "Authorization: Bearer $TOKEN"
 curl $BASE_URL/api/v4/integration/machines/by-machine-number/M-001         -H "Authorization: Bearer $TOKEN"
 curl "$BASE_URL/api/v4/integration/machines?includeEquipmentDetails=true"  -H "Authorization: Bearer $TOKEN"
+curl $BASE_URL/api/v4/integration/machines/{id}                            -H "Authorization: Bearer $TOKEN"
 ```
+
+`GET .../machines/{id}` reaches machines and equipment owned by a company in your company structure (with prices) and ones another company shares with you, such as a subcontractor's machine on your projects (`price`, `costPrice` and `costPriceMachine` are `null`). Any other id returns `404`, the same as an unknown id.
 
 ## Update
 
 Machine updates require a relationship to the stored machine before applying request fields: the effective caller's company owns it, it is already shared with that company, or the caller has the applicable administration access through the stored owner's company hierarchy. Existing write permissions must also pass; sharing alone does not grant permission to edit the machine. Supplying a different `companyId`, or knowing the ID of a machine with no transactions, does not grant access.
 
-Full replacement and ESG updates return the same generic HTTP 404 for an absent machine or a rejected write scope. Partial updates return that 404 for a rejected write scope but retain their existing lookup-error behavior for absent targets. Array updates check each item separately; earlier items can already have succeeded if a later item fails. Supported ownership transfers remain available after the stored target passes the check. Equipment updates follow their existing rules.
+`PUT`, `PATCH` and ESG updates return the same generic HTTP 404 for an absent machine and for one you can't reach. Array updates check each item separately; earlier items can already have succeeded if a later item fails. Supported ownership transfers remain available after the stored target passes the check.
+
+On a machine another company shares with you, prices in the request are ignored (the stored prices stay, the response returns `null`), and a `companyId` other than the owner's returns 404: sharing never moves a machine to your company.
+
+Equipment (`isEquipment: true`) can be updated only when it belongs to your company structure. `PUT` and array updates answer equipment outside it like an unknown equipment id (HTTP 400). `PATCH` answers 404, or 400 for equipment another company shares with you.
 
 ```bash
 # Partial update (e.g. hour meter / service)
@@ -63,4 +70,4 @@ On **create**, omitted fields still take their defaults — `active` defaults to
 
 Deactivate retired machines (`active:false`) rather than deleting.
 
-**C#:** [`MachinesExample.cs`](MachinesExample.cs).
+**C#:** [`MachinesExample.cs`](MachinesExample.cs). It creates its own machine in your company and updates only that one, so the rules above for other companies' machines don't change what it does.
