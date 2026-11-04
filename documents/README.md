@@ -461,7 +461,8 @@ Notes:
 - **The folder or section must already exist** — push a document to it first. A `404` means it does not.
 - **This replaces the whole text.** It is the same text a Ditio Web user can edit on that page, so a write
   here overwrites what they typed, and theirs overwrites yours. Send the full text you want shown.
-- Send `null` or `""` to clear it.
+- Send `{"description": null}` or `{"description": ""}` to clear it. A request with no body, or a bare `null`,
+  is rejected with `400` (`RequestBodyRequired`) and leaves the text as it is.
 - **Limits:** up to 10 000 characters and a 64 KB request body; longer is rejected with `400`.
 - **Any level of a path** can be described: `?section=Dokumenter/Tillegg og endringer` describes that folder,
   `?section=Dokumenter/Tillegg og endringer/Endringsmeldinger` that page.
