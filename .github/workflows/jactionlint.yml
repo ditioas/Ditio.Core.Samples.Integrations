@@ -1,0 +1,80 @@
+name: jactionlint
+
+# Advisory workflow linting: keep this check optional in branch protection.
+# Run jactionlint 2.3.0 from the repository root for the same offline checks.
+# Findings remain visible as annotations and failed lint runs; this rollout does
+# not suppress existing findings or change release workflows.
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/**"
+      - ".github/actions/**"
+      - "action.yml"
+      - "action.yaml"
+      - "**/action.yml"
+      - "**/action.yaml"
+      - ".github/dependabot.yml"
+      - ".github/dependabot.yaml"
+      - ".github/jactionlint.yml"
+      - ".github/jactionlint.yaml"
+      - ".github/actionlint.yml"
+      - ".github/actionlint.yaml"
+      - ".github/jactionlint-baseline.json"
+  push:
+    branches: ["main"]
+    paths:
+      - ".github/workflows/**"
+      - ".github/actions/**"
+      - "action.yml"
+      - "action.yaml"
+      - "**/action.yml"
+      - "**/action.yaml"
+      - ".github/dependabot.yml"
+      - ".github/dependabot.yaml"
+      - ".github/jactionlint.yml"
+      - ".github/jactionlint.yaml"
+      - ".github/actionlint.yml"
+      - ".github/actionlint.yaml"
+      - ".github/jactionlint-baseline.json"
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  jactionlint:
+    name: jactionlint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # Supply a verified binary: the action's own downloader does not verify it.
+      # Bump this version, its checksum and the action pin together.
+      - name: Install jactionlint
+        id: install
+        env:
+          GH_TOKEN: ${{ github.token }}
+          JACTIONLINT_VERSION: 2.3.0
+          JACTIONLINT_SHA256: 907e6f6a59e181879f7e6936e19ee2eca1cbc51de134fb85460cfa8d65a71f28
+        run: |
+          archive="jactionlint_${JACTIONLINT_VERSION}_linux_amd64.tar.gz"
+          curl -fsSL -o "$RUNNER_TEMP/$archive" \
+            "https://github.com/jdx/jactionlint/releases/download/v${JACTIONLINT_VERSION}/${archive}"
+          echo "${JACTIONLINT_SHA256}  $RUNNER_TEMP/$archive" | sha256sum -c -
+          gh attestation verify --repo jdx/jactionlint "$RUNNER_TEMP/$archive"
+          mkdir -p "$RUNNER_TEMP/jactionlint"
+          tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP/jactionlint" jactionlint
+          echo "executable=$RUNNER_TEMP/jactionlint/jactionlint" >> "$GITHUB_OUTPUT"
+      - uses: jdx/jactionlint@a65ab044e916760429068fe5794b8306abdfcbb9 # v2.3.0
+        with:
+          executable: ${{ steps.install.outputs.executable }}
