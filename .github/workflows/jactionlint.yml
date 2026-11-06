@@ -1,9 +1,7 @@
 name: jactionlint
 
-# Advisory workflow linting: keep this check optional in branch protection.
-# Run the manifest-pinned jactionlint from the repository root for the same checks.
-# Findings remain visible as annotations and failed lint runs; this rollout does
-# not suppress existing findings or change release workflows.
+# Official action: its commit pin selects the binary release and Dependabot
+# updates that pin. Keep this check optional; findings remain visible in CI.
 
 on:
   pull_request:
@@ -21,7 +19,6 @@ on:
       - ".github/actionlint.yml"
       - ".github/actionlint.yaml"
       - ".github/jactionlint-baseline.json"
-      - ".github/jactionlint-version.json"
   push:
     branches: ["main"]
     paths:
@@ -38,7 +35,6 @@ on:
       - ".github/actionlint.yml"
       - ".github/actionlint.yaml"
       - ".github/jactionlint-baseline.json"
-      - ".github/jactionlint-version.json"
   schedule:
     - cron: "17 6 * * 1"
   workflow_dispatch:
@@ -60,22 +56,4 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      # Version and checksum are updated together by Mimir's jactionlint updater.
-      - name: Install verified jactionlint
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          version=$(jq -er '.version' .github/jactionlint-version.json)
-          checksum=$(jq -er '.sha256' .github/jactionlint-version.json)
-          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
-          [[ "$checksum" =~ ^[0-9a-f]{64}$ ]]
-          archive="jactionlint_${version}_linux_amd64.tar.gz"
-          curl -fsSL -o "$RUNNER_TEMP/$archive" \
-            "https://github.com/jdx/jactionlint/releases/download/v${version}/${archive}"
-          echo "${checksum}  $RUNNER_TEMP/$archive" | sha256sum -c -
-          gh attestation verify --repo jdx/jactionlint "$RUNNER_TEMP/$archive"
-          mkdir -p "$RUNNER_TEMP/jactionlint"
-          tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP/jactionlint" jactionlint
-          echo "$RUNNER_TEMP/jactionlint" >> "$GITHUB_PATH"
-      - name: Lint workflows, actions and Dependabot
-        run: jactionlint --format github
+      - uses: jdx/jactionlint@9e87e8f34edfc00b849a27807e26eff9d00b936d # v2.5.0
