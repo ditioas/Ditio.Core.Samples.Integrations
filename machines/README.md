@@ -70,4 +70,21 @@ On **create**, omitted fields still take their defaults — `active` defaults to
 
 Deactivate retired machines (`active:false`) rather than deleting.
 
-**C#:** [`MachinesExample.cs`](MachinesExample.cs). It creates its own machine in your company and updates only that one, so the rules above for other companies' machines don't change what it does.
+### Price changes held for review (`202`)
+
+A company can choose to hold risky price changes from integrations until an administrator has reviewed them. For such a company, `PUT /{id}`, `PATCH /{id}` and `PUT update/array` can answer **`202 Accepted`** instead of `200`. That happens when the request sets `price`, `costPrice` or `costPriceMachine` from a non-zero value to `0`, and, counting this request, your API client has set more than 5 prices to `0` in the last 24 hours, or prices on more than 10 % of the company's priced machines and equipment. Omitted prices and prices that are already `0` never count.
+
+When a request is held, its other fields are applied, but none of its prices are (on every item of an array update). The body is not the machine:
+
+```json
+{
+  "pendingPriceChangeId": "68b2c3d4e5f6a7b8c9d0e5f1",
+  "summary": "1 price(s) on 1 resource(s) set to 0 or not charged; 6 price(s) on 6 resource(s) from this client in 24 hours"
+}
+```
+
+An administrator approves the prices (they are applied as you sent them) or rejects them in Ditio. The Integration API has no endpoint to look up or decide a held change; read the machine with `GET .../machines/{id}` later to see its prices.
+
+Treat `202` as **success, pending review**: log `pendingPriceChangeId` and **do not retry**. While your client is over the limit, every further request that sets a price to `0` is held too. Full reference: [Price changes held for review](https://docs.ditio.app/api-reference/integration/machines/#price-changes-held-for-review).
+
+**C#:** [`MachinesExample.cs`](MachinesExample.cs). It creates its own machine in your company and updates only that one, so the rules above for other companies' machines don't change what it does. Its `UpdateMachineAsync` helper sends the `PATCH` machine updates and handles `202`: it logs `pendingPriceChangeId` and the summary, and does not retry. Use it the same way for `PUT /{id}` and `PUT update/array`.

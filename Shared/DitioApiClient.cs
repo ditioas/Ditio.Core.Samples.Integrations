@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using Newtonsoft.Json;
@@ -52,7 +53,13 @@ public sealed class DitioApiClient
         return raw;
     }
 
-    private async Task<dynamic?> SendAsync(HttpMethod method, string path, object? body = null)
+    /// <summary>
+    /// Like <see cref="PutAsync"/> or <see cref="PatchAsync"/>, but also returns the status code, for endpoints where
+    /// two success statuses mean different things. The machines update answers 200 with the machine, or 202 with
+    /// a pending price change when its prices are held for review (see machines/README.md). The body is null on a
+    /// non-success status, as for the other methods.
+    /// </summary>
+    public async Task<(HttpStatusCode Status, dynamic? Body)> SendWithStatusAsync(HttpMethod method, string path, object? body = null)
     {
         using var request = new HttpRequestMessage(method, path.TrimStart('/'));
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await _tokens.GetTokenAsync(_scope));
@@ -60,8 +67,11 @@ public sealed class DitioApiClient
             request.Content = new StringContent(JsonConvert.SerializeObject(body), Encoding.UTF8, "application/json");
 
         using var response = await _http.SendAsync(request);
-        return await ReadResponse(method, path, response);
+        return (response.StatusCode, await ReadResponse(method, path, response));
     }
+
+    private async Task<dynamic?> SendAsync(HttpMethod method, string path, object? body = null)
+        => (await SendWithStatusAsync(method, path, body)).Body;
 
     /// <summary>
     /// Downloads a binary response body to a local file (used by the Documents API's
