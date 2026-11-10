@@ -1,0 +1,59 @@
+name: jactionlint
+
+# Official action: its commit pin selects the binary release and Dependabot
+# updates that pin. Keep this check optional; findings remain visible in CI.
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/**"
+      - ".github/actions/**"
+      - "action.yml"
+      - "action.yaml"
+      - "**/action.yml"
+      - "**/action.yaml"
+      - ".github/dependabot.yml"
+      - ".github/dependabot.yaml"
+      - ".github/jactionlint.yml"
+      - ".github/jactionlint.yaml"
+      - ".github/actionlint.yml"
+      - ".github/actionlint.yaml"
+      - ".github/jactionlint-baseline.json"
+  push:
+    branches: ["main"]
+    paths:
+      - ".github/workflows/**"
+      - ".github/actions/**"
+      - "action.yml"
+      - "action.yaml"
+      - "**/action.yml"
+      - "**/action.yaml"
+      - ".github/dependabot.yml"
+      - ".github/dependabot.yaml"
+      - ".github/jactionlint.yml"
+      - ".github/jactionlint.yaml"
+      - ".github/actionlint.yml"
+      - ".github/actionlint.yaml"
+      - ".github/jactionlint-baseline.json"
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  jactionlint:
+    name: jactionlint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: jdx/jactionlint@9e87e8f34edfc00b849a27807e26eff9d00b936d # v2.5.0
