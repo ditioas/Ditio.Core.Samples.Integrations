@@ -46,7 +46,8 @@ public static class ChecklistRegistrationsReportedExample
         // 2. Process them in your system here. Mark only the ones you actually stored.
 
         // 3. Mark them as reported, up to 100 ids per call. Each id gets its own result, so one id that cannot
-        //    be reported never blocks the rest, and retrying a call is safe (alreadyReported).
+        //    be reported never blocks the rest. Resending a call is safe: ids already done return
+        //    alreadyReported, so after a 5xx send the same batch again.
         foreach (var batch in approvedIds.Chunk(MaxIdsPerCall))
         {
             var results = await core.PostAsync("api/integration/checklist-registrations/reported", new { ids = batch });
