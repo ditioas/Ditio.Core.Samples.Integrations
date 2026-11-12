@@ -64,6 +64,7 @@ If anything fails (network, 401, 500, a crash), the transaction rolls back and t
 | `v1/time-registrations` | `time_registrations` | `vw_time_registrations` |
 | `v1/absence-registrations` | `absence_registrations` | `vw_absence_registrations` |
 | `v1/machine-registrations` | `machine_registrations` | `vw_machine_registrations` |
+| `v1/item-registrations` | `item_registrations` | `vw_item_registrations` |
 | `v1/incident-registrations` | `incident_registrations` | `vw_incident_registrations` |
 | `v1/checklist-registrations` | `checklist_registrations` | `vw_checklist_registrations` |
 | `v1/flow-trip-registrations` | `flow_trip_registrations` | `vw_flow_trip_registrations` |
