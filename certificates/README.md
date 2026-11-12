@@ -70,8 +70,9 @@ curl -X POST "$BASE_URL/api/v4/integration/certificates/attachments?employeeNumb
 |--------|------|
 | `401` | The token is missing or invalid |
 | `403` | The token may not use the integration API |
-| `400` | `employeeNumber` or `certificateType` is blank, no employee has that `employeeNumber`, or the body has no `file` part |
+| `400` | `employeeNumber` or `certificateType` is blank, no employee has that `employeeNumber`, or the body has no `file` part. Also when a file is refused: an HTML/web document, script or executable extension (for example `.html`, `.mht`, `.js`, `.exe`; trailing dots and spaces are trimmed first), a file whose bytes do not match its image extension, or an SVG with script content, that is not well-formed or over 5 MiB. Retrying the same file fails again. |
 | `404` | The employee has no current certificate of that type (with that `certificateNumber`, when sent) — create it first. Also when the employee has no profile in the company your token belongs to, or the API client is read-only. Also when the `InheritUserFromRef` or `isAvatar` upload headers are sent. |
+| `413` | The complete multipart request is larger than 30,000,000 bytes. Send larger batches as separate requests. |
 | `415` | The body is not `multipart/form-data` |
 
 **C#:** [`CertificatesExample.cs`](CertificatesExample.cs).
