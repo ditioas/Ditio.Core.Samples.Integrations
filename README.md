@@ -24,6 +24,7 @@ Example integrations for the **Ditio Core API** — one folder per integration k
 - [`certificates`](certificates/README.md) — user certificates, and image/PDF scans of the card attached to them
 - [`documents`](documents/README.md) — documents on projects & work orders
 - [`absences`](absences/README.md) — push absences granted in your payroll/HR system, in one call, and list what Ditio holds for a period
+- [`checklist-registrations`](checklist-registrations/README.md) — mark approved checklist registrations as reported after your system has processed them
 
 **Get data out of Ditio** (read / sync)
 
