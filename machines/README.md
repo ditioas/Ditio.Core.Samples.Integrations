@@ -23,7 +23,7 @@ curl "$BASE_URL/api/v4/integration/machines?includeEquipmentDetails=true"  -H "A
 curl $BASE_URL/api/v4/integration/machines/{id}                            -H "Authorization: Bearer $TOKEN"
 ```
 
-`GET .../machines/{id}` reaches machines and equipment owned by a company in your company structure (with prices) and ones another company shares with you, such as a subcontractor's machine on your projects (`price`, `costPrice` and `costPriceMachine` are `null`). Any other id returns `404`, the same as an unknown id.
+`GET .../machines/{id}` reaches machines and equipment owned by a company in your company structure (with prices) and ones another company shares with you, such as a subcontractor's machine on your projects (`price`, `costPrice` and `costPriceMachine` are `null`). Sharing applies to the exact company the machine is shared with: a machine shared only with one of your project companies, and not with the main company, returns `404` to the main company. Any other id returns `404`, the same as an unknown id.
 
 ## Update
 
