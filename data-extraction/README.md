@@ -64,10 +64,13 @@ Each checklist on `v1/checklist-registrations` carries the work order it was reg
 
 ## Payroll lines and payroll lines (extended)
 
-`v1/payroll-lines-extended` returns the same summaries as the payroll export API's
-[`GET api/payroll-export/`](../payroll-export/README.md) — use this endpoint instead when you already
-pull everything else through the paginated Data Extraction API and want payroll data on the same
-`continuationToken` / `modifiedSince` model. `v1/payroll-lines` is the plain (non-extended) variant.
+`v1/payroll-lines` is the recommended way to pull payroll data into an accounting or payroll system: send
+`ExportFilter=Approved` (the default, `All`, includes unapproved data) and follow the `continuationToken`.
+Each row carries `payrollValuesAsExportLines`, ready to map to your payroll codes.
+`v1/payroll-lines-extended` takes the same parameters and returns the full payroll summary — approval,
+verification and lock status, the quantity breakdown and `overtimeLines` — the same summaries as the
+older Integration API [`GET api/payroll-export/`](../payroll-export/README.md). Reading these endpoints
+never locks data; see [`../payroll-export/README.md`](../payroll-export/README.md#locking).
 
 Each summary carries `overtimeLines`: one entry per overtime payroll type booked on the day, instead of
 just the fixed `overtime50Qty` / `overtime100Qty` fields — a company can configure any number of
