@@ -49,6 +49,8 @@ public static class CertificatesExample
         // with the same file name (use it on re-sync to avoid duplicates). Attachments added by others, for
         // example the employee in the app, are never replaced. certificateNumber picks the card when the employee
         // holds more than one current builder card; without it, the one valid longest is used.
+        // For a person with no employee number (for example a subcontractor worker), send identityId=<guid>
+        // instead of employeeNumber (exactly one of the two).
         dynamic? upload;
         try
         {

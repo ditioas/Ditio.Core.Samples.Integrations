@@ -30,13 +30,14 @@ Required per item: `employeeNumber`, `certificateType`, `issuedDateTime`, `valid
 
 ## Upload attachments to a certificate
 
-`POST api/v4/integration/certificates/attachments` — attach images or PDF scans of the card (front and back, for example) to a certificate. The certificate is found by the same key as the upsert, `employeeNumber` + `certificateType` (type matching ignores case and spaces), so you never need a Ditio id. **Create the certificate first** (above), then upload the files.
+`POST api/v4/integration/certificates/attachments` — attach images or PDF scans of the card (front and back, for example) to a certificate. The certificate is found by the same key as the upsert, `employeeNumber` + `certificateType` (type matching ignores case and spaces), so you never need a Ditio id. For a person with no employee number, such as a subcontractor worker, send `identityId` instead of `employeeNumber`. **Create the certificate first** (above), then upload the files.
 
 Send one or more files as `multipart/form-data`, each in a part named `file`. Query parameters:
 
 | Param | Required | Effect |
 |-------|----------|--------|
-| `employeeNumber` | yes | The employee's number, as in the upsert |
+| `employeeNumber` | yes, unless `identityId` is sent | The employee's number, as in the upsert |
+| `identityId` | yes, unless `employeeNumber` is sent | The person's identity id, sent **instead of** `employeeNumber` for people who have none. Send exactly one of the two. The person must belong to your company (or its structure) |
 | `certificateType` | yes | The certificate type, as in the upsert |
 | `replaceExistingFilesWithSameName` | no | Default `false`. When `true`, a file this API client (or, when your token acts as a user, that user) uploaded earlier to this certificate with the same original file name is replaced instead of added again. Attachments added by others (for example the employee in the app) are never replaced |
 | `certificateNumber` | no | Optional. Only the employee's current certificate with this number (as sent in the upsert; case and spaces ignored). `404` when none has it. Without it, when the employee holds several current certificates of the type, the one valid longest is used, then the newest |
@@ -47,6 +48,8 @@ curl -X POST "$BASE_URL/api/v4/integration/certificates/attachments?employeeNumb
   -F "file=@/path/to/byggekort-front.jpg" \
   -F "file=@/path/to/byggekort-back.jpg"
 ```
+
+For a person with no employee number, replace `employeeNumber=1042` with `identityId=3f2b8c1e-7a4d-4e5b-9c6a-1d2e3f4a5b6c`. The certificate itself is still created through the upsert above, which needs an employee number, so `identityId` only addresses a certificate that already exists.
 
 **Response** (`200`):
 
@@ -70,7 +73,7 @@ curl -X POST "$BASE_URL/api/v4/integration/certificates/attachments?employeeNumb
 |--------|------|
 | `401` | The token is missing or invalid |
 | `403` | The token may not use the integration API |
-| `400` | `employeeNumber` or `certificateType` is blank, no employee has that `employeeNumber`, or the body has no `file` part |
+| `400` | `certificateType` is blank, both or neither of `employeeNumber` and `identityId` is sent, no employee has that `employeeNumber`, no person in your company (or its structure) has that `identityId`, or the body has no `file` part |
 | `404` | The employee has no current certificate of that type (with that `certificateNumber`, when sent) — create it first. Also when the employee has no profile in the company your token belongs to, or the API client is read-only. Also when the `InheritUserFromRef` or `isAvatar` upload headers are sent. |
 | `415` | The body is not `multipart/form-data` |
 
