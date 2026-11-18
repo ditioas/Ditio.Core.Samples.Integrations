@@ -18,6 +18,7 @@ public static class DataExtractionExample
         ("Project transactions",      "v1/time-registrations"),
         ("Crew-list passages",         "v1/crew-list-registrations"),
         ("Machine registrations",     "v1/machine-registrations"),
+        ("Item lines",                "v1/item-registrations"),
         ("Absences",                  "v1/absence-registrations"),
         ("Payroll lines",             "v1/payroll-lines"),
         ("Images",                    "v1/images"),

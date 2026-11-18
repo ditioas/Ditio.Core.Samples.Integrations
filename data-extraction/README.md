@@ -27,7 +27,7 @@ TOKEN=$(curl -s -X POST $IDENTITY/connect/token \
 | Machine registrations | `GET $REPORTING_URL/v1/machine-registrations` |
 | Absences | `GET $REPORTING_URL/v1/absence-registrations` |
 | Payroll lines | `GET $REPORTING_URL/v1/payroll-lines` (and [`/v1/payroll-lines-extended`](#payroll-lines-and-payroll-lines-extended), which adds `overtimeLines`) |
-| Items | `GET $REPORTING_URL/v1/item-registrations/web-query` |
+| Item lines (materials, km, machine hours) | `GET $REPORTING_URL/v1/item-registrations` — see [Item Data](https://docs.ditio.app/guides/item-data/). The Power BI template uses the text export `/v1/item-registrations/web-query` instead. |
 | Images | `GET $REPORTING_URL/v1/images` |
 | Machine checklists / incidents | `GET $REPORTING_URL/v1/machine-checklist-registrations`, `/v1/machine-incident-registrations` |
 | Ditio Flow (locations, mass types, trips) | `GET $REPORTING_URL/v1/flow-locations`, `/v1/flow-mass-types`, `/v1/flow-trip-registrations` |
