@@ -53,6 +53,8 @@ Example integrations for the **Ditio Core API** — one folder per integration k
 
 ## Run the C# examples
 
+Install the .NET 9 SDK to build and run the examples.
+
 1. In Ditio Web → **Company Setup → Integration** (Administrator access), create an API client and copy its `client_id` / `client_secret`.
 2. Copy `appsettings.example.json` → `appsettings.json` and fill in `ClientId` / `ClientSecret` / `CompanyId`. Defaults are **production**; test values are in the comments. `appsettings.json` is git-ignored.
 3. Run:
