@@ -6,8 +6,7 @@
 
 ## Authorization
 
-The rules below describe the Core API contract introduced by
-[the administrator and company-scope change](https://github.com/ditioas/timestyr/pull/5876).
+The rules below describe the Core API contract.
 
 Every v4 Users endpoint requires an Administrator or a Ditio SysOp. API clients use
 their resolved company administrator or emulated user; other signed-in users receive `403`.
