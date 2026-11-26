@@ -83,5 +83,13 @@ internal sealed record SyncEndpoint(string Path, string Table, string[] ViewColu
             "identityUserId", "firstName", "lastName", "email", "workTitle", "isDisabled",
             "companyId", "companyName", "modifiedDateTime",
         ]),
+        // One row per tag assignment. Tag changes don't change the user record, so v1/user alone
+        // never sees them. Join companyProfileId to vw_users.id (or userId to identityUserId).
+        new("v1/user-tag", "user_tags",
+        [
+            "userId", "companyProfileId", "employeeNumber", "companyId", "companyName",
+            "tagId", "tagName", "tagCompanyId", "tagCompanyName",
+            "isPayrollTag", "applicableFromDate", "applicableToDate", "modifiedDateTime",
+        ]),
     };
 }

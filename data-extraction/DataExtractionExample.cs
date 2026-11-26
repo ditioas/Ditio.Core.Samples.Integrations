@@ -12,6 +12,7 @@ public static class DataExtractionExample
         ("Projects",                  "v1/project"),
         ("Work orders (WBS)",         "v1/project/work-breakdown-structure"),
         ("Users",                     "v1/user"),
+        ("User tags",                 "v1/user-tag"),
         ("Resources (machines)",      "v1/resource"),
         ("Checklists",                "v1/checklist-registrations"),
         ("Alerts (incidents)",        "v1/incident-registrations"),
