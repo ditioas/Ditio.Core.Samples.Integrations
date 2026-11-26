@@ -29,6 +29,7 @@ These rules apply to every `v1/*` extraction endpoint used here.
 
 - **Registrations** (time, machine, absence, incident) come back as a tombstone. It has the `id`, `isDeleted`, `deletedDateTime` and `modifiedDateTime` (equal to the deletion time); the other fields are empty. Look the record up by `id`, and don't overwrite your copy with the empty fields.
 - **Projects, work orders, resources and users** come back as their last stored version with `isDeleted: true`. Their `modifiedDateTime` is the last change *before* the deletion, so use `deletedDateTime` for when it was deleted.
+- **User tags** (`v1/user-tag`, one record per tag assignment) come back as a tombstone with the `id`, `companyId`, `isDeleted`, `deletedDateTime`, `deletedBy` and `modifiedDateTime` (equal to the removal time); the other fields are empty. Tag changes don't change the user record, so `v1/user` never reports them: sync both.
 - **Checklists** come back as the full record with `isDeleted: true`. Checklists made from a machine checklist template are not in `v1/checklist-registrations` unless you add `includeMachineChecklists=true`. When a template's type changes to or from machine checklist, its checklists move between endpoints without a deletion. See [Machine checklists](https://docs.ditio.app/guides/safety-reporting/#machine-checklists).
 - `deletedRecordCount` tells you how many deletions the page holds. `recordCount` counts both live and deleted records.
 - The same deletion can appear on more than one page or more than one run. Applying it twice must be harmless.
@@ -72,6 +73,7 @@ If anything fails (network, 401, 500, a crash), the transaction rolls back and t
 | `v1/project/work-breakdown-structure` | `work_orders` | `vw_work_orders` |
 | `v1/resource` | `resources` | `vw_resources` |
 | `v1/user` | `users` | `vw_users` |
+| `v1/user-tag` | `user_tags` | `vw_user_tags` |
 
 - **Tables** have one row per record: `id TEXT PRIMARY KEY`, `modified TEXT`, `deleted INTEGER`, and `json TEXT` holding the record exactly as the API returned it. No field is lost, even fields added to the API later.
 - **Views** pull the commonly used fields out of the JSON with `json_extract` and leave out deleted rows. To add a column, add the field name to the endpoint's list in [`SyncEndpoint.cs`](SyncEndpoint.cs). The views are recreated on every run. Field names are the API's (camelCase); see Swagger for the full list.
@@ -141,7 +143,7 @@ Every 15–60 minutes is plenty. Ditio data is not real-time, and a sync more of
 
 1. Install a SQLite ODBC driver, and create an ODBC data source (DSN) that points at the `.db` file.
 2. In Power BI Desktop, choose **Get data → ODBC**, pick the DSN, and load the `vw_*` views.
-3. Relate the registrations to the dimensions on their ids, for example `vw_time_registrations.projectId` → `vw_projects.id`, `taskId` → `vw_work_orders.id`, `resourceId` → `vw_resources.id`.
+3. Relate the registrations to the dimensions on their ids, for example `vw_time_registrations.projectId` → `vw_projects.id`, `taskId` → `vw_work_orders.id`, `resourceId` → `vw_resources.id`. Relate `vw_user_tags.companyProfileId` → `vw_users.id` to put the tags on the users.
 
 Power BI only reads the local file, so a refresh is fast and never touches Ditio. For scheduled refresh in the Power BI service, the machine with the file needs an on-premises data gateway.
 

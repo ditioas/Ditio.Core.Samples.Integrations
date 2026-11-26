@@ -19,6 +19,7 @@ TOKEN=$(curl -s -X POST $IDENTITY/connect/token \
 | Projects | `GET $REPORTING_URL/v1/project` |
 | Work orders (WBS) | `GET $REPORTING_URL/v1/project/work-breakdown-structure` |
 | Users | `GET $REPORTING_URL/v1/user` |
+| User tags (including payroll tag periods) | `GET $REPORTING_URL/v1/user-tag` — one record per tag assignment, administrators only. Tag changes don't change the user record, so sync it alongside `v1/user` and join on `companyProfileId` (= `id` in `v1/user`) or `userId` (= `identityUserId`). See [User Tags](https://docs.ditio.app/guides/user-tags/). |
 | Resources (machines) | `GET $REPORTING_URL/v1/resource` |
 | Checklists | `GET $REPORTING_URL/v1/checklist-registrations` (add `includeMachineChecklists=true` to include machine checklists — see [Machine checklists](https://docs.ditio.app/guides/safety-reporting/#machine-checklists)) |
 | Alerts (incidents) | `GET $REPORTING_URL/v1/incident-registrations` |
