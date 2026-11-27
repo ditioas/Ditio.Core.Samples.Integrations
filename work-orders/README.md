@@ -1,7 +1,5 @@
 # 03 — Work orders (tasks)
 
-> Runtime status: the parent/project restrictions described below are being implemented in [Core PR #5031](https://github.com/ditioas/timestyr/pull/5031). Documentation publication alone does not establish that the behavior is deployed.
-
 `api/v4/integration/tasks` · scope `ditioapiv3`. A work order belongs to a project — create/find the project first ([`../projects`](../projects)). Set `$BASE_URL` / `$TOKEN` — see [`../authentication`](../authentication).
 
 ## Create
